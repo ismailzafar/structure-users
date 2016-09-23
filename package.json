@@ -1,6 +1,6 @@
 {
   "name": "structure-users",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
@@ -32,12 +32,13 @@
     "rethinkdbdash": "^2.3.23",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",
-    "structure-migrations": "0.0.3",
-    "structure-plugins": "0.0.11",
+    "structure-dispatcher": "0.0.6",
+    "structure-migrations": "0.0.4",
+    "structure-plugins": "0.0.13",
     "structure-root-controller": "0.0.3",
-    "structure-root-model": "0.0.1",
-    "structure-router": "0.0.1",
-    "structure-server": "0.0.2",
+    "structure-root-model": "0.0.3",
+    "structure-router": "0.0.3",
+    "structure-server": "0.0.6",
     "structure-test-helpers": "0.0.3",
     "supertest": "^2.0.0",
     "supertest-as-promised": "^4.0.0"

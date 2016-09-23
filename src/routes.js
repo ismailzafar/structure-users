@@ -1,22 +1,18 @@
+import Controller from './controllers/user'
 import Dispatcher from 'structure-dispatcher'
 
+const controller = new Controller()
 const dispatch = new Dispatcher().dispatch
 const express  = require('express')
 const routes   = express.Router()
 
-export default function routeInterface(props = {}) {
+routes.get(`/:id`,    dispatch(controller, 'getById'))
+routes.get(`/`,       dispatch(controller, 'getAll'))
 
-  const controller = new props.Controller()
+routes.patch(`/:id`,  dispatch(controller, 'updateById'))
 
-  routes.get(`/:id`,                 dispatch(controller, 'getById'))
-  routes.get(`/`,                    dispatch(controller, 'getAll'))
+routes.post(`/`,      dispatch(controller, 'create'))
 
-  routes.patch(`/:id`,               dispatch(controller, 'updateById'))
+routes.delete(`/:id`, dispatch(controller, 'deleteById'))
 
-  routes.post(`/`,                   dispatch(controller, 'create'))
-
-  routes.delete(`/:id`,              dispatch(controller, 'deleteById'))
-
-  return routes
-
-}
+export default routes

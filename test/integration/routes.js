@@ -1,17 +1,11 @@
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import MockHTTPServer from '../helpers/mock-http-server'
-import userControllerInterface from '../../src/controller'
-import userModelInterface from '../../src/model'
 import r from '../helpers/driver'
-import RootController from 'structure-root-controller'
-import RootModel from 'structure-root-model'
+import UserController from '../../src/controllers/user'
+import UserModel from '../../src/models/user'
 
 Migrations.prototype.r = r
-RootModel.prototype.r = r
-
-const UserModel = userModelInterface(RootModel)
-const UserController = userControllerInterface(RootController, UserModel)
 
 describe('Routes', function() {
 

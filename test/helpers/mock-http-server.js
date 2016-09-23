@@ -1,5 +1,5 @@
 import Dispatcher from 'structure-dispatcher'
-import Plugin from '../../src/index'
+const Plugin = require('../../src/index')
 import pluginsInteface from 'structure-plugins'
 import request from 'supertest-as-promised'
 import RootController from 'structure-root-controller'

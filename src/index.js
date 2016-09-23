@@ -1,21 +1,30 @@
-import controllerInterface from './controller'
+import Controller from './controllers/user'
 import migrations from './migrations'
-import modelInterface from './model'
-import routeInterface from './routes'
+import Model from './models/user'
+import routes from './routes'
 
 export default function pluginInterface(props = {}) {
 
-  const Model = modelInterface(props.Model)
-  const Controller = controllerInterface(props.Controller, Model)
-
   return {
-    Controller,
-    migrations,
-    Model,
-    routeName: 'users',
-    routes: routeInterface({
-      Controller
-    })
+    routes
   }
 
 }
+
+const resources = {
+  controllers: {
+    Application: Controller
+  },
+  models: {
+    Application: Model
+  }
+}
+
+const settings = {
+  pluginName: 'users',
+  routeName: 'users'
+}
+
+export {migrations}
+export {resources}
+export {settings}
