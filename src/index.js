@@ -1,13 +1,12 @@
+import accessControl from './access-control'
 import Controller from './controllers/user'
 import migrations from './migrations'
 import Model from './models/user'
 import routes from './routes'
 
-export default function pluginInterface(props = {}) {
+export default function pluginInterface(options = {}) {
 
-  return {
-    routes
-  }
+  return routes(options)
 
 }
 
@@ -21,10 +20,10 @@ const resources = {
 }
 
 const settings = {
-  pluginName: 'users',
-  routeName: 'users'
+  accessControl,
+  migrations,
+  pluginName: 'users'
 }
 
-export {migrations}
 export {resources}
 export {settings}

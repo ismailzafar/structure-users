@@ -42,6 +42,58 @@ describe('Routes', function() {
 
   })
 
+  it('should not create a user; duplicate username', async function() {
+
+    var pkg1 = {
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password : 'foo88'
+    }
+
+    var pkg2 = {
+      username: 'testuser1',
+      email: 'testuser2@mail.com',
+      password : 'foo88'
+    }
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg1)
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg2)
+
+    expect(res.body.status).to.equal(400)
+
+  })
+
+  it('should not create a user; duplicate email', async function() {
+
+    var pkg1 = {
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password : 'foo88'
+    }
+
+    var pkg2 = {
+      username: 'testuser2',
+      email: 'testuser1@mail.com',
+      password : 'foo88'
+    }
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg1)
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg2)
+
+    expect(res.body.status).to.equal(400)
+
+  })
+
   it('should get a user by Id', async function() {
 
     var pkg = {
