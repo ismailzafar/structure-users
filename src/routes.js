@@ -6,8 +6,8 @@ const dispatch = new Dispatcher().dispatch
 const express = require('express')
 const router = express.Router()
 
-//router.get(`/email/:email`, dispatch(controller, 'getByEmail'))
-//router.get(`/username/:username`, dispatch(controller, 'getByUsername'))
+router.get(`/email/:email`, dispatch(controller, 'getByEmail'))
+router.get(`/username/:username`, dispatch(controller, 'getByUsername'))
 router.get(`/:id`, dispatch(controller, 'getById'))
 router.get(`/`, dispatch(controller, 'getAll'))
 

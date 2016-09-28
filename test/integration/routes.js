@@ -53,7 +53,7 @@ describe('Routes', function() {
 
   })
 
-  it.only('should not create a user; duplicate username', async function() {
+  it('should not create a user; duplicate username', async function() {
 
     var res0 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/organizations`)
@@ -62,7 +62,7 @@ describe('Routes', function() {
       })
 
     const org = res0.body.pkg
-    console.error('org', org)
+
     var pkg1 = {
       organizationId: org.id,
       username: 'testuser1',
@@ -84,7 +84,7 @@ describe('Routes', function() {
     var res2 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
       .send(pkg2)
-    console.error('res2.body', res2.body, res2.error)
+
     expect(res2.body.status).to.equal(400)
     expect(res2.body.err.code).to.equal(codes.USER_DUPLICATE_USERNAME)
 
