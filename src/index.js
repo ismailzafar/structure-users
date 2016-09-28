@@ -12,10 +12,10 @@ export default function pluginInterface(options = {}) {
 
 const resources = {
   controllers: {
-    Application: Controller
+    User: Controller
   },
   models: {
-    Application: Model
+    User: Model
   }
 }
 
