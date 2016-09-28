@@ -1,3 +1,4 @@
+import codes from '../lib/error-codes'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
 
@@ -46,7 +47,10 @@ export default class UsersController extends RootController {
           resolve(user.create(req.body))
         }
 
+        const code = (response[0]) ? codes.USER_DUPLICATE_EMAIL : codes.USER_DUPLICATE_USERNAME
+
         reject({
+          code,
           message: 'User already exists'
         })
       }

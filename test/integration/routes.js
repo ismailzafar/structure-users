@@ -1,3 +1,4 @@
+import codes from '../../src/lib/error-codes'
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import MockHTTPServer from '../helpers/mock-http-server'
@@ -65,6 +66,7 @@ describe('Routes', function() {
       .send(pkg2)
 
     expect(res.body.status).to.equal(400)
+    expect(res.body.err.code).to.equal(codes.USER_DUPLICATE_USERNAME)
 
   })
 
@@ -91,6 +93,7 @@ describe('Routes', function() {
       .send(pkg2)
 
     expect(res.body.status).to.equal(400)
+    expect(res.body.err.code).to.equal(codes.USER_DUPLICATE_EMAIL)
 
   })
 

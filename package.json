@@ -1,12 +1,12 @@
 {
   "name": "structure-users",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
     "babel-runtime": "^6.11.6",
     "express": "^4.14.0",
-    "structure-dispatcher": "0.0.6",
+    "structure-dispatcher": "0.0.7",
     "structure-password-service": "0.0.1",
     "structure-token-service": "0.0.1"
   },
