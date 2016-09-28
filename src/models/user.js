@@ -1,3 +1,4 @@
+import codes from '../lib/error-codes'
 import logger from 'structure-logger'
 import PasswordService from 'structure-password-service'
 import RootModel from 'structure-root-model'
@@ -105,7 +106,11 @@ export default class UserModel extends RootModel {
         resolve(doc)
       }
       catch(e) {
-        reject(e)
+        logger.error(e)
+
+        reject({
+          code: codes.UKNOWN
+        })
       }
 
     })
@@ -119,12 +124,22 @@ export default class UserModel extends RootModel {
    * @param {String} email
    */
   getByEmail(email) {
+
     return new Promise( async (resolve, reject) => {
-      var user = await this.r.table(this.table || 'users').filter({email}).limit(1)
 
-      if(!user) return reject(user)
+      try {
+        var user = await this.r.table(this.table).filter({email}).limit(1)
 
-      resolve(user[0])
+        if(user[0]) return resolve(user[0])
+
+        resolve()
+      }
+      catch(e) {
+
+        reject(e)
+
+      }
+
     })
   }
 
@@ -135,13 +150,24 @@ export default class UserModel extends RootModel {
    * @param {String} username
    */
   getByUsername(username) {
+
     return new Promise( async (resolve, reject) => {
-      var user = await this.r.table(this.table || 'users').filter({username}).limit(1)
 
-      if(!user) return reject(user)
+      try {
+        var user = await this.r.table(this.table).filter({username}).limit(1)
 
-      resolve(user[0])
+        if(user[0]) return resolve(user[0])
+
+        resolve()
+      }
+      catch(e) {
+
+        reject(e)
+
+      }
+
     })
+
   }
 
   /**
@@ -160,6 +186,20 @@ export default class UserModel extends RootModel {
     }
 
     return RootModel.prototype.updateById.call(this, id, pkg, options)
+
+  }
+
+  /**
+   * Update user profile
+   *
+   * @public
+   * @param {String} id
+   * @param {Object} pkg - Data to update user
+   * @param {Object} options - Options
+   */
+  updateProfile(id, pkg = {}, options = {}) {
+
+    return this.udpateById.apply(this, arguments)
 
   }
 

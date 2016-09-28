@@ -10,7 +10,10 @@ import Server from 'structure-server'
 const plugins = pluginsInteface({
   Controller: RootController,
   Model: RootModel,
-  list: [Plugin]
+  list: [
+    'structure-organizations',
+    Plugin
+  ]
 })
 
 function MockHTTPServer(options = {}) {

@@ -1,13 +1,12 @@
+import codes from '../../src/lib/error-codes'
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
-import userModelInterface from '../../src/model'
+import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
 import r from '../helpers/driver'
-import RootModel from 'structure-root-model'
+import UserModel from '../../src/models/user'
 
+const OrganizationModel = organizationResources.models.Organization
 Migrations.prototype.r = r
-RootModel.prototype.r = r
-
-const UserModel = userModelInterface(RootModel)
 
 /** @test {UserModel} */
 describe('Model', function() {
@@ -16,7 +15,9 @@ describe('Model', function() {
 
     this.migration = new Migrations({
       db: 'test',
-      items: migrationItems
+      items: {
+        tables: migrationItems.tables.concat(organizationSettings.migrations.tables)
+      }
     })
 
     return this.migration.process()
@@ -27,18 +28,16 @@ describe('Model', function() {
     return this.migration.purge()
   })
 
-  it('should initialize', function(done) {
+  it('should initialize', function() {
 
     var user = new UserModel()
 
     expect(user.table).to.be.equal('users')
 
-    done()
-
   })
 
   /** @test {UserModel#create} */
-  it('should create a user', async function(done) {
+  it('should create a user', async function() {
 
     var orgModel = new OrganizationModel(),
         user     = new UserModel()
@@ -66,12 +65,10 @@ describe('Model', function() {
     expect(join[0].organizationId).to.equal(org.id)
     expect(join[0].userId).to.equal(res.id)
 
-    done()
-
   })
 
   /** @test {UserModel#getById} */
-  it('should get by ID', async function(done) {
+  it('should get by ID', async function() {
 
     var user = new UserModel({
     })
@@ -89,12 +86,88 @@ describe('Model', function() {
     expect(res2.password).to.be.undefined
     expect(res2.hash).to.be.a('string')
 
-    done()
+  })
+
+  /** @test {UserModel#getByEmail} */
+  it('should not get by email', async function() {
+
+    var user = new UserModel({
+    })
+
+    var res = await user.create({
+      username: 'ted1talks2000',
+      email: 'ted1@email.com',
+      password: 'foo88'
+    })
+
+    const res2 = await user.getByEmail('ted2@email.com')
+
+    expect(res2).to.equal(undefined)
+
+  })
+
+  /** @test {UserModel#getByEmail} */
+  it('should get by email', async function() {
+
+    var user = new UserModel({
+    })
+
+    var res = await user.create({
+      username: 'ted1talks2000',
+      email: 'ted1@email.com',
+      password: 'foo88'
+    })
+
+    var res2 = await user.getByEmail(res.email)
+
+    expect(res2.username).to.equal('ted1talks2000')
+    expect(res2.email).to.equal('ted1@email.com')
+    expect(res2.password).to.be.undefined
+    expect(res2.hash).to.be.a('string')
+
+  })
+
+  /** @test {UserModel#getByUsername} */
+  it('should not get by username', async function() {
+
+    var user = new UserModel({
+    })
+
+    var res = await user.create({
+      username: 'ted1talks2000',
+      email: 'ted1@email.com',
+      password: 'foo88'
+    })
+
+    const res2 = await user.getByUsername('foobar')
+
+    expect(res2).to.equal(undefined)
+
+  })
+
+  /** @test {UserModel#getByUsername} */
+  it('should get by username', async function() {
+
+    var user = new UserModel({
+    })
+
+    var res = await user.create({
+      username: 'ted1talks2000',
+      email: 'ted1@email.com',
+      password: 'foo88'
+    })
+
+    var res2 = await user.getByUsername(res.username)
+
+    expect(res2.username).to.equal('ted1talks2000')
+    expect(res2.email).to.equal('ted1@email.com')
+    expect(res2.password).to.be.undefined
+    expect(res2.hash).to.be.a('string')
 
   })
 
   /** @test {UserModel#getAll} */
-  it('should get all', async function(done) {
+  it('should get all', async function() {
 
     var user = new UserModel({
       name: 'root'
@@ -110,12 +183,10 @@ describe('Model', function() {
 
     expect(res2.length > 0).to.be.true
 
-    done()
-
   })
 
   /** @test {UserModel#update} */
-  it('should update a user', async function(done) {
+  it('should update a user', async function() {
 
     var user = new UserModel()
 
@@ -137,8 +208,6 @@ describe('Model', function() {
     expect(res2.email).to.equal('ted33@email.com')
     expect(res2.password).to.be.undefined
     expect(res2.hash).to.be.a('string')
-
-    done()
 
   })
 
