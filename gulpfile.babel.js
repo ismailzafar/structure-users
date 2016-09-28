@@ -22,6 +22,8 @@ gulp.task('mocha', function(done) {
   gulp
     .src([
       './test/setup.js',
+      './test/integration/model.js',
+      './test/integration/controller.js',
       './test/integration/routes.js'
     ], {read: false})
     .pipe(mocha({reporter: 'spec'}))

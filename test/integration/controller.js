@@ -1,16 +1,14 @@
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
-import userControllerInterface from '../../src/controller'
-import userModelInterface from '../../src/model'
+import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
 import r from '../helpers/driver'
 import RootController from 'structure-root-controller'
 import RootModel from 'structure-root-model'
+import UserController from '../../src/controllers/user'
+import UserModel from '../../src/models/user'
 
+const OrganizationController = organizationResources.controllers.Organization
 Migrations.prototype.r = r
-RootModel.prototype.r = r
-
-const UserModel = userModelInterface(RootModel)
-const UserController = userControllerInterface(RootController, UserModel)
 
 /** @test {UserController} */
 describe('Controller', function() {
@@ -19,7 +17,9 @@ describe('Controller', function() {
 
     this.migration = new Migrations({
       db: 'test',
-      items: migrationItems
+      items: {
+        tables: migrationItems.tables.concat(organizationSettings.migrations.tables)
+      }
     })
 
     return this.migration.process()
@@ -30,45 +30,43 @@ describe('Controller', function() {
     return this.migration.purge()
   })
 
-  /** @test {UsersController#create} */
-  it('should create an user', async function(done) {
+  /** @test {UserController#create} */
+  it('should create an user', async function() {
 
-      var user = new UsersController(),
-      organization = new OrganizationsController()
+    var user = new UserController(),
+    organization = new OrganizationController()
 
-      var req0 = {
-        body: {
-          title: 'My Organization'
-        }
+    var req0 = {
+      body: {
+        title: 'My Organization'
       }
+    }
 
-      var org = await organization.create(req0)
+    var org = await organization.create(req0)
 
-      var req = {
-        body: {
-          username: 'ted1talks3000',
-          email: 'ted10@email.com',
-          password: 'foo88',
-          organizationId: org.id
-        }
+    var req = {
+      body: {
+        username: 'ted1talks3000',
+        email: 'ted10@email.com',
+        password: 'foo88',
+        organizationId: org.id
       }
+    }
 
-      var res = await user.create(req)
+    var res = await user.create(req)
 
-      expect(res.username).to.equal('ted1talks3000')
-      expect(res.email).to.equal('ted10@email.com')
-      expect(res.password).to.be.undefined
-      expect(res.hash).to.be.a('string')
-
-    done()
+    expect(res.username).to.equal('ted1talks3000')
+    expect(res.email).to.equal('ted10@email.com')
+    expect(res.password).to.be.undefined
+    expect(res.hash).to.be.a('string')
 
   })
 
 
-  /** @test {UsersController#getById} */
-  it('should get by ID', async function(done) {
+  /** @test {UserController#getById} */
+  it('should get by ID', async function() {
 
-    var user = new UsersController({
+    var user = new UserController({
     })
 
     var req = {
@@ -93,15 +91,12 @@ describe('Controller', function() {
     expect(res2.email).to.equal('ted11@email.com')
     expect(res2.password).to.be.undefined
     expect(res2.hash).to.be.a('string')
-
-    done()
-
   })
 
   /** @test {UserModel#getAll} */
-  it('should get all', async function(done) {
+  it('should get all', async function() {
 
-    var user = new UsersController({
+    var user = new UserController({
     })
 
     var req = {
@@ -118,14 +113,12 @@ describe('Controller', function() {
 
     expect(res2.length > 0).to.be.true
 
-    done()
-
   })
 
-  /** @test {UsersController#update} */
-  it('should update a user', async function(done) {
+  /** @test {UserController#update} */
+  it('should update a user', async function() {
 
-    var user = new UsersController()
+    var user = new UserController()
 
     var req = {
       body: {
@@ -153,8 +146,6 @@ describe('Controller', function() {
     expect(res2.email).to.equal('ted14@email.com')
     expect(res.password).to.be.undefined
     expect(res.hash).to.be.a('string')
-
-    done()
 
   })
 

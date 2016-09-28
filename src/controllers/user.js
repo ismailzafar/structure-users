@@ -31,49 +31,31 @@ export default class UsersController extends RootController {
    * @param {Object} res - Express res
    */
   create(req, res) {
+    const userModel = new UserModel()
+
     const {username, email} = req.body
 
-    return new Promise( async (resolve,reject) => {
+    return Promise
+      .all([
+        userModel.getByEmail(email),
+        userModel.getByUsername(username)
+      ])
+      .then((response) => {
 
-      try {
-        const user = new UserModel()
-
-        const response = await Promise.all([
-          user.getByEmail(email),
-          user.getByUsername(username)
-        ])
-
-        if(!response[0] && !response[1]) {
-          resolve(user.create(req.body))
+        if((!response[0] || response[0].length == 0) && (!response[1] || response[1].length == 0)) {
+          return Promise.resolve()
         }
 
         const code = (response[0]) ? codes.USER_DUPLICATE_EMAIL : codes.USER_DUPLICATE_USERNAME
 
-        reject({
+        return Promise.reject({
           code,
           message: 'User already exists'
         })
-      }
-      catch(err) {
-        reject(err)
-      }
-
-    })
-  }
-
-  /**
-   * Get user by id
-   *
-   * @public
-   * @param {Object} req - Express req
-   * @param {Object} res - Express res
-   */
-  getById(req, res) {
-
-    var user = new UserModel()
-
-    return user.getById(req.params.id)
-
+      })
+      .then(() => {
+        return userModel.create(req.body)
+      })
   }
 
   /**
@@ -92,6 +74,51 @@ export default class UsersController extends RootController {
   }
 
   /**
+   * Get user by email
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
+  getByEmail(req, res) {
+    console.error('hit???')
+    const user = new UserModel()
+
+    return user.getByEmail(req.params.email)
+
+  }
+
+  /**
+   * Get user by id
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
+  getById(req, res) {
+
+    var user = new UserModel()
+
+    return user.getById(req.params.id)
+
+  }
+
+  /**
+   * Get user by username
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
+  getByUsername(req, res) {
+
+    const user = new UserModel()
+
+    return user.getByUsername(req.params.username)
+
+  }
+
+  /**
    * Update a user
    *
    * @public
@@ -103,6 +130,14 @@ export default class UsersController extends RootController {
     var user = new UserModel()
 
     return user.updateById(req.params.id, req.body)
+
+  }
+
+  updateProfile(req, res) {
+
+    const user = new UserModel()
+
+    return user.updateProfile(req.params.id, req.body)
 
   }
 
