@@ -14,10 +14,7 @@ router.get(`/`, dispatch(controller, 'getAll'))
 router.patch(`/:id/profile`, dispatch(controller, 'updateProfile'))
 router.patch(`/:id`, dispatch(controller, 'updateById'))
 
-router.post(`/`, function(req, res, next) {
-  console.error('hello???', req.body)
-  next()
-}, dispatch(controller, 'create'))
+router.post(`/`, dispatch(controller, 'create'))
 
 router.delete(`/:id`, dispatch(controller, 'deleteById'))
 

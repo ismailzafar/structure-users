@@ -67,6 +67,14 @@ export default class UsersController extends RootController {
       })
   }
 
+  deleteById(req, res) {
+
+    const user = new UserModel()
+
+    return user.deleteById(req.params.id)
+
+  }
+
   /**
    * Get all users
    *

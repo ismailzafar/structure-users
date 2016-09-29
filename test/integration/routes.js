@@ -312,6 +312,39 @@ describe('Routes', function() {
 
   })
 
+  it.only('should delete a user by Id', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var pkg = {
+      organizationId: org.id,
+      username: 'testuser4',
+      email: 'testuser@mail.com',
+      password : 'foo88'
+    }
+
+    var user = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg)
+
+    var usersId = user.body.pkg.id
+
+    var res = await new MockHTTPServer()
+      .delete(`/api/${process.env.API_VERSION}/users/${usersId}`)
+
+    var res2 = await new MockHTTPServer()
+      .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
+
+    expect(res2.body.pkg.__state).to.equal('deleted')
+
+  })
+
   it.skip('should update a user by username', async function() {
 
     var res0 = await new MockHTTPServer()
