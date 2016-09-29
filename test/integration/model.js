@@ -60,8 +60,6 @@ describe('Model', function() {
 
     expect(res.username).to.equal('ted0talks2000')
     expect(res.email).to.equal('ted0@email.com')
-    expect(res.password).to.be.undefined
-    expect(res.hash).to.be.a('string')
     expect(join[0].organizationId).to.equal(org.id)
     expect(join[0].userId).to.equal(res.id)
 
@@ -83,8 +81,6 @@ describe('Model', function() {
 
     expect(res2.username).to.equal('ted1talks2000')
     expect(res2.email).to.equal('ted1@email.com')
-    expect(res2.password).to.be.undefined
-    expect(res2.hash).to.be.a('string')
 
   })
 
@@ -122,8 +118,6 @@ describe('Model', function() {
 
     expect(res2.username).to.equal('ted1talks2000')
     expect(res2.email).to.equal('ted1@email.com')
-    expect(res2.password).to.be.undefined
-    expect(res2.hash).to.be.a('string')
 
   })
 
@@ -161,8 +155,6 @@ describe('Model', function() {
 
     expect(res2.username).to.equal('ted1talks2000')
     expect(res2.email).to.equal('ted1@email.com')
-    expect(res2.password).to.be.undefined
-    expect(res2.hash).to.be.a('string')
 
   })
 
@@ -206,8 +198,6 @@ describe('Model', function() {
     expect(res2.lastName).to.equal('Talkington')
     expect(res2.username).to.equal('ted3talks2000')
     expect(res2.email).to.equal('ted33@email.com')
-    expect(res2.password).to.be.undefined
-    expect(res2.hash).to.be.a('string')
 
   })
 

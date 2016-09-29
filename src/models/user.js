@@ -1,6 +1,5 @@
 import codes from '../lib/error-codes'
 import logger from 'structure-logger'
-import PasswordService from 'structure-password-service'
 import RootModel from 'structure-root-model'
 
 /**
@@ -96,9 +95,6 @@ export default class UserModel extends RootModel {
   create(pkg = {}, options = {}) {
 
     return new Promise( async (resolve, reject) => {
-
-      pkg.hash = await new PasswordService().issue(pkg.password)
-      delete pkg.password
 
       try {
         var doc = await RootModel.prototype.create.call(this, pkg, options)

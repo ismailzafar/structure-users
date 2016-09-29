@@ -127,6 +127,29 @@ describe('Routes', function() {
 
   })
 
+  it('should create a ghost user', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        firstName: 'Charlie',
+        __ghost: true
+      })
+
+    expect(res.body.pkg.firstName).to.equal('Charlie')
+    expect(res.body.status).to.equal(201)
+
+  })
+
   it('should get a user by Id', async function() {
 
     var res0 = await new MockHTTPServer()

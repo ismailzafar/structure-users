@@ -1,4 +1,5 @@
 import codes from '../lib/error-codes'
+import PasswordService from 'structure-password-service'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
 
@@ -30,15 +31,23 @@ export default class UsersController extends RootController {
    * @param {Object} req - Express req
    * @param {Object} res - Express res
    */
-  create(req, res) {
+  async create(req, res) {
+    const pkg = req.body
     const userModel = new UserModel()
 
-    const {username, email} = req.body
+    if(pkg.__ghost) {
+      delete pkg.__ghost
+
+      return userModel.create(pkg)
+    }
+
+    pkg.hash = await new PasswordService().issue(pkg.password)
+    delete pkg.password
 
     return Promise
       .all([
-        userModel.getByEmail(email),
-        userModel.getByUsername(username)
+        userModel.getByEmail(pkg.email),
+        userModel.getByUsername(pkg.username)
       ])
       .then((response) => {
 
@@ -54,7 +63,7 @@ export default class UsersController extends RootController {
         })
       })
       .then(() => {
-        return userModel.create(req.body)
+        return userModel.create(pkg)
       })
   }
 
