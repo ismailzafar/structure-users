@@ -38,9 +38,9 @@ export default class UsersController extends RootController {
        'password'
      ]
 
-     const key = req.params.key
+     const key = req.params.key.toLowerCase()
      const userModel = new UserModel()
-     const val = req.params.value
+     const val = req.params.value.toLowerCase()
 
      return new Promise( async (resolve, reject) => {
 
@@ -90,6 +90,33 @@ export default class UsersController extends RootController {
 
       return userModel.create(pkg)
     }
+
+    if(!pkg.email) {
+      return Promise.reject({
+        code: codes.INVALID_EMAIL
+      })
+    }
+
+    if(!pkg.organizationId) {
+      return Promise.reject({
+        code: codes.INVALID_ORGANIZATION
+      })
+    }
+
+    if(!pkg.password) {
+      return Promise.reject({
+        code: codes.INVALID_PASSWORD
+      })
+    }
+
+    if(!pkg.username) {
+      return Promise.reject({
+        code: codes.INVALID_USERNAME
+      })
+    }
+
+    pkg.email = pkg.email.toLowerCase()
+    pkg.username = pkg.username.toLowerCase()
 
     pkg.hash = await new PasswordService().issue(pkg.password)
     delete pkg.password
@@ -141,21 +168,6 @@ export default class UsersController extends RootController {
   }
 
   /**
-   * Get user applications
-   *
-   * @public
-   * @param {Object} req - Express req
-   * @param {Object} res - Express res
-   */
-  getApplications(req, res) {
-
-    var user = new UserModel()
-
-    return user.getApplications(req.params.id)
-
-  }
-
-  /**
    * Get user by email
    *
    * @public
@@ -197,21 +209,6 @@ export default class UsersController extends RootController {
     const user = new UserModel()
 
     return user.getByUsername(req.params.username)
-
-  }
-
-  /**
-   * Get user organizations
-   *
-   * @public
-   * @param {Object} req - Express req
-   * @param {Object} res - Express res
-   */
-  getOrganizations(req, res) {
-
-    var user = new UserModel()
-
-    return user.getOrganizations(req.params.id)
 
   }
 

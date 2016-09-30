@@ -11,7 +11,7 @@ const OrganizationController = organizationResources.controllers.Organization
 Migrations.prototype.r = r
 
 /** @test {UserController} */
-describe('Controller', function() {
+describe.skip('Controller', function() {
 
   beforeEach(function() {
 

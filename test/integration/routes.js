@@ -28,7 +28,7 @@ describe('Routes', function() {
     return this.migration.purge()
   })
 
-  it('should create a user', async function() {
+  it('should not create a user; missing username', async function() {
 
     var res0 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/organizations`)
@@ -42,14 +42,77 @@ describe('Routes', function() {
       .post(`/api/${process.env.API_VERSION}/users`)
       .send({
         organizationId: org.id,
-        username: 'testuser1',
         email: 'testuser1@mail.com',
         password : 'foo88'
       })
 
-    expect(res.body.pkg.username).to.equal('testuser1')
-    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
-    expect(res.body.status).to.equal(201)
+    expect(res.body.err.code).to.equal(codes.INVALID_USERNAME)
+
+  })
+
+  it('should not create a user; missing email', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        username: 'fpp',
+        password : 'foo88'
+      })
+
+    expect(res.body.err.code).to.equal(codes.INVALID_EMAIL)
+
+  })
+
+  it('should not create a user; missing password', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        username: 'woober',
+        email: 'woo@gfoo.com'
+      })
+
+    expect(res.body.err.code).to.equal(codes.INVALID_PASSWORD)
+
+  })
+
+  it('should not create a user; missing organization', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        password: 'pumpitup',
+        username: 'woober',
+        email: 'woo@gfoo.com'
+      })
+
+    expect(res.body.err.code).to.equal(codes.INVALID_ORGANIZATION)
 
   })
 
@@ -73,6 +136,43 @@ describe('Routes', function() {
     var pkg2 = {
       organizationId: org.id,
       username: 'testuser1',
+      email: 'testuser2@mail.com',
+      password : 'foo88'
+    }
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg1)
+
+    var res2 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg2)
+
+    expect(res2.body.status).to.equal(400)
+    expect(res2.body.err.code).to.equal(codes.USER_DUPLICATE_USERNAME)
+
+  })
+
+  it('should not create a user; duplicate username (case)', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var pkg1 = {
+      organizationId: org.id,
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password : 'foo88'
+    }
+
+    var pkg2 = {
+      organizationId: org.id,
+      username: 'Testuser1',
       email: 'testuser2@mail.com',
       password : 'foo88'
     }
@@ -124,6 +224,68 @@ describe('Routes', function() {
 
     expect(res.body.status).to.equal(400)
     expect(res.body.err.code).to.equal(codes.USER_DUPLICATE_EMAIL)
+
+  })
+
+  it('should not create a user; duplicate email (case)', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var pkg1 = {
+      organizationId: org.id,
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password : 'foo88'
+    }
+
+    var pkg2 = {
+      organizationId: org.id,
+      username: 'testuser2',
+      email: 'Testuser1@mail.com',
+      password : 'foo88'
+    }
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg1)
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg2)
+
+    expect(res.body.status).to.equal(400)
+    expect(res.body.err.code).to.equal(codes.USER_DUPLICATE_EMAIL)
+
+  })
+
+  it('should create a user', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var res = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        username: 'testuser1',
+        email: 'testuser1@mail.com',
+        password : 'foo88'
+      })
+
+    expect(res.body.pkg.username).to.equal('testuser1')
+    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
+    expect(res.body.status).to.equal(201)
 
   })
 
