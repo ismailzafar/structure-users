@@ -114,6 +114,28 @@ export default class UserModel extends RootModel {
   }
 
   /**
+   * Get user applications
+   *
+   * @public
+   * @param {String} userId
+   * @param {String} orgId
+   */
+  getApplications(userId, orgId) {
+
+    return new Promise( async (resolve, reject) => {
+
+      try {
+        const apps = null
+      }
+      catch(e) {
+
+      }
+
+    })
+
+  }
+
+  /**
    * Get user by email
    *
    * @public
@@ -159,6 +181,28 @@ export default class UserModel extends RootModel {
       catch(e) {
 
         reject(e)
+
+      }
+
+    })
+
+  }
+
+  /**
+   * Get user applications
+   *
+   * @public
+   * @param {String} userId
+   * @param {String} orgId
+   */
+  getOrganizations(userId, orgId) {
+
+    return new Promise( async (resolve, reject) => {
+
+      try {
+        const apps = null
+      }
+      catch(e) {
 
       }
 

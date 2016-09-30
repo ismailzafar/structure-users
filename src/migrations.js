@@ -2,7 +2,11 @@ export default {
   tables: [
     {
       action: 'create',
-      table: 'users'
+      table: 'users',
+      indexes: [
+        'email',
+        'username'
+      ]
     },
     {
       action: 'create',

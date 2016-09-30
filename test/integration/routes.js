@@ -11,7 +11,7 @@ Migrations.prototype.r = r
 
 describe('Routes', function() {
 
-  beforeEach(function() {
+  before(function() {
 
     this.migration = new Migrations({
       db: 'test',
@@ -312,7 +312,7 @@ describe('Routes', function() {
 
   })
 
-  it.only('should delete a user by Id', async function() {
+  it('should delete a user by Id', async function() {
 
     var res0 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/organizations`)
@@ -379,6 +379,42 @@ describe('Routes', function() {
 
     expect(res2.body.pkg.username).to.equal('updateduser4')
     expect(res.body.status).to.equal(200)
+
+  })
+
+  it('should check existence of key value pair', async function() {
+
+    var res0 = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it'
+      })
+
+    const org = res0.body.pkg
+
+    var pkg = {
+      organizationId: org.id,
+      username: 'testuser4',
+      email: 'testuser@mail.com',
+      password : 'foo88'
+    }
+
+    var userRes = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send(pkg)
+
+    var user = userRes.body.pkg
+
+    var res = await Promise
+      .all([
+        new MockHTTPServer()
+          .get(`/api/${process.env.API_VERSION}/users/existence/username/${user.username}`),
+        new MockHTTPServer()
+          .get(`/api/${process.env.API_VERSION}/users/existence/email/johnny@brown.com`)
+      ])
+
+    expect(res[0].body.pkg.exists).to.equal(true)
+    expect(res[1].body.pkg.exists).to.equal(false)
 
   })
 

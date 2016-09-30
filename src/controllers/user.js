@@ -25,6 +25,56 @@ export default class UsersController extends RootController {
    }
 
    /**
+    * Check existence of key value pair
+    *
+    * @public
+    * @param {Object} req - Express req
+    * @param {Object} res - Express res
+    */
+   checkExistence(req, res) {
+
+     const blacklist = [
+       'hash',
+       'password'
+     ]
+
+     const key = req.params.key
+     const userModel = new UserModel()
+     const val = req.params.value
+
+     return new Promise( async (resolve, reject) => {
+
+       if(!key || blacklist.indexOf(key) > -1) return reject({
+         code: codes.INVALID_KEY
+       })
+
+       if(!val) return reject({
+         code: codes.INVALID_VALUE
+       })
+
+       const filter = {}
+       filter[key] = val
+
+       try {
+         const existence = await userModel.checkExistence(key, val)
+
+         resolve(existence)
+       }
+       catch(e) {
+
+         reject({
+           code: codes.UNKNOWN,
+           message: e.message,
+           stack: e.stack
+         })
+
+       }
+
+     })
+
+   }
+
+  /**
    * Create new user
    *
    * @public
@@ -91,6 +141,21 @@ export default class UsersController extends RootController {
   }
 
   /**
+   * Get user applications
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
+  getApplications(req, res) {
+
+    var user = new UserModel()
+
+    return user.getApplications(req.params.id)
+
+  }
+
+  /**
    * Get user by email
    *
    * @public
@@ -98,7 +163,7 @@ export default class UsersController extends RootController {
    * @param {Object} res - Express res
    */
   getByEmail(req, res) {
-    console.error('hit???')
+
     const user = new UserModel()
 
     return user.getByEmail(req.params.email)
@@ -132,6 +197,21 @@ export default class UsersController extends RootController {
     const user = new UserModel()
 
     return user.getByUsername(req.params.username)
+
+  }
+
+  /**
+   * Get user organizations
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
+  getOrganizations(req, res) {
+
+    var user = new UserModel()
+
+    return user.getOrganizations(req.params.id)
 
   }
 

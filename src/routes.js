@@ -6,8 +6,11 @@ const dispatch = new Dispatcher().dispatch
 const express = require('express')
 const router = express.Router()
 
+router.get('/existence/:key/:value', dispatch(controller, 'checkExistence'))
 router.get(`/email/:email`, dispatch(controller, 'getByEmail'))
 router.get(`/username/:username`, dispatch(controller, 'getByUsername'))
+router.get(`/:id/applications`, dispatch(controller, 'getApplications'))
+router.get(`/:id/organizations`, dispatch(controller, 'getOrganizations'))
 router.get(`/:id`, dispatch(controller, 'getById'))
 router.get(`/`, dispatch(controller, 'getAll'))
 
