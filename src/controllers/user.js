@@ -125,8 +125,8 @@ export default class UsersController extends RootController {
 
     return Promise
       .all([
-        (strictMode) ? userModel.getByEmail(pkg.email) : false,
-        (strictMode) ? userModel.getByUsername(pkg.username) : false
+        (pkg.email) ? userModel.getByEmail(pkg.email) : false,
+        (pkg.username) ? userModel.getByUsername(pkg.username) : false
       ])
       .then((response) => {
         const duplicateEmail = response[0]
