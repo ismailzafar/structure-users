@@ -148,6 +148,13 @@ export default class UsersController extends RootController {
       })
   }
 
+  /**
+   * Delete user by id
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
   deleteById(req, res) {
 
     const user = new UserModel()
@@ -213,6 +220,21 @@ export default class UsersController extends RootController {
     const user = new UserModel()
 
     return user.getByUsername(req.params.username)
+
+  }
+
+  /**
+   * Purge user by id
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
+  purgeById(req, res) {
+
+    const user = new UserModel()
+
+    return user.purgeById(req.params.id)
 
   }
 

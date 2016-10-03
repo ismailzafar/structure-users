@@ -1,6 +1,6 @@
 {
   "name": "structure-users",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
@@ -10,7 +10,7 @@
     "structure-dispatcher": "0.0.7",
     "structure-password-service": "0.0.1",
     "structure-root-controller": "0.0.3",
-    "structure-root-model": "0.0.5",
+    "structure-root-model": "0.0.8",
     "structure-token-service": "0.0.1"
   },
   "devDependencies": {
@@ -34,9 +34,10 @@
     "rethinkdbdash": "^2.3.23",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",
-    "structure-migrations": "0.0.4",
+    "structure-groups": "0.0.8",
+    "structure-migrations": "0.0.7",
     "structure-organizations": "0.0.9",
-    "structure-plugins": "0.0.15",
+    "structure-plugins": "0.0.21",
     "structure-router": "0.0.3",
     "structure-server": "0.0.6",
     "structure-test-helpers": "0.0.3",

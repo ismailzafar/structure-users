@@ -1,19 +1,12 @@
 import Dispatcher from 'structure-dispatcher'
-const Plugin = require('../../src/index')
 import pluginsInteface from 'structure-plugins'
+import pluginsList from './plugins'
 import request from 'supertest-as-promised'
-import RootController from 'structure-root-controller'
-import RootModel from 'structure-root-model'
 import Router from 'structure-router'
 import Server from 'structure-server'
 
 const plugins = pluginsInteface({
-  Controller: RootController,
-  Model: RootModel,
-  list: [
-    'structure-organizations',
-    Plugin
-  ]
+  list: pluginsList
 })
 
 function MockHTTPServer(options = {}) {

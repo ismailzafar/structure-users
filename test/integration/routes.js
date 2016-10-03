@@ -1,23 +1,20 @@
 import codes from '../../src/lib/error-codes'
-import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import MockHTTPServer from '../helpers/mock-http-server'
-import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
+import pluginsList from '../helpers/plugins'
 import r from '../helpers/driver'
 import UserController from '../../src/controllers/user'
 import UserModel from '../../src/models/user'
 
 Migrations.prototype.r = r
 
-describe('Routes', function() {
+describe.only('Routes', function() {
 
   before(function() {
 
     this.migration = new Migrations({
       db: 'test',
-      items: {
-        tables: migrationItems.tables.concat(organizationSettings.migrations.tables)
-      }
+      plugins: pluginsList
     })
 
     return this.migration.process()
@@ -581,6 +578,184 @@ describe('Routes', function() {
 
     expect(res[0].body.pkg.exists).to.equal(true)
     expect(res[1].body.pkg.exists).to.equal(false)
+
+  })
+
+  it('should delete user references when user is deleted', async function() {
+
+    const server = new MockHTTPServer()
+
+    var res0 = await server
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it 1'
+      })
+
+    const org = res0.body.pkg
+
+    await server
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it 2'
+      })
+
+    var res1 = await server
+      .post(`/api/${process.env.API_VERSION}/groups`)
+      .send({
+        title: 'work it out 1'
+      })
+
+    const group = res1.body.pkg
+
+    await server
+      .post(`/api/${process.env.API_VERSION}/groups`)
+      .send({
+        title: 'work it out 2'
+      })
+
+    var userRes1 = await server
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        groupId: group.id,
+        username: 'testuser5',
+        email: 'testuser@mail.com',
+        password : 'foo88'
+      })
+
+    var userRes2 = await server
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        groupId: group.id,
+        username: 'testuser6',
+        email: 'testuser7@mail.com',
+        password : 'foo88'
+      })
+
+    const user1 = userRes1.body.pkg
+    const user2 = userRes2.body.pkg
+
+    var deleteRes = await server
+      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/purge`)
+      .send()
+
+    const results1 = await Promise
+      .all([
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`),
+        server.get(`/api/${process.env.API_VERSION}/users`)
+      ])
+
+    const orgs1 = results1[0].body.pkg.organizations
+    const groups1 = results1[1].body.pkg.groups
+
+    expect(orgs1.length).to.equal(0)
+    expect(groups1.length).to.equal(0)
+
+    const results2 = await Promise
+      .all([
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`),
+        server.get(`/api/${process.env.API_VERSION}/users`)
+      ])
+
+    const orgs2 = results2[0].body.pkg.organizations
+    const groups2 = results2[1].body.pkg.groups
+    const users = results2[2].body.pkg.users
+
+    expect(orgs2.length).to.equal(1)
+    expect(groups2.length).to.equal(1)
+    expect(users.length).to.equal(1)
+
+  })
+
+  it('should delete user references when user is purged', async function() {
+
+    const server = new MockHTTPServer()
+
+    var res0 = await server
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it 1'
+      })
+
+    const org = res0.body.pkg
+
+    await server
+      .post(`/api/${process.env.API_VERSION}/organizations`)
+      .send({
+        title: 'work it 2'
+      })
+
+    var res1 = await server
+      .post(`/api/${process.env.API_VERSION}/groups`)
+      .send({
+        title: 'work it out 1'
+      })
+
+    const group = res1.body.pkg
+
+    await server
+      .post(`/api/${process.env.API_VERSION}/groups`)
+      .send({
+        title: 'work it out 2'
+      })
+
+    var userRes1 = await server
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        groupId: group.id,
+        username: 'testuser5',
+        email: 'testuser@mail.com',
+        password : 'foo88'
+      })
+
+    var userRes2 = await server
+      .post(`/api/${process.env.API_VERSION}/users`)
+      .send({
+        organizationId: org.id,
+        groupId: group.id,
+        username: 'testuser6',
+        email: 'testuser7@mail.com',
+        password : 'foo88'
+      })
+
+    const user1 = userRes1.body.pkg
+    const user2 = userRes2.body.pkg
+
+    var deleteRes = await server
+      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/purge`)
+      .send()
+
+    const results1 = await Promise
+      .all([
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`),
+        server.get(`/api/${process.env.API_VERSION}/users`)
+      ])
+
+    const orgs1 = results1[0].body.pkg.organizations
+    const groups1 = results1[1].body.pkg.groups
+
+    expect(orgs1.length).to.equal(0)
+    expect(groups1.length).to.equal(0)
+
+    const results2 = await Promise
+      .all([
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`),
+        server.get(`/api/${process.env.API_VERSION}/users`)
+      ])
+
+    const orgs2 = results2[0].body.pkg.organizations
+    const groups2 = results2[1].body.pkg.groups
+    const users = results2[2].body.pkg.users
+
+    expect(orgs2.length).to.equal(1)
+    expect(groups2.length).to.equal(1)
+    expect(users.length).to.equal(1)
 
   })
 
