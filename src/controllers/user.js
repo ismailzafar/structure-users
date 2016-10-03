@@ -83,56 +83,58 @@ export default class UsersController extends RootController {
    */
   async create(req, res) {
     const pkg = req.body
+    const userRegistrationMode = (process.env.USER_REGISTRATION) ? process.env.USER_REGISTRATION : 'strict'
     const userModel = new UserModel()
+    const strictMode = userRegistrationMode == 'strict'
 
-    if(pkg.__ghost) {
-      delete pkg.__ghost
+    if(strictMode) {
 
-      return userModel.create(pkg)
+      if(!pkg.email) {
+        return Promise.reject({
+          code: codes.INVALID_EMAIL
+        })
+      }
+
+      if(!pkg.organizationId) {
+        return Promise.reject({
+          code: codes.INVALID_ORGANIZATION
+        })
+      }
+
+      if(!pkg.password) {
+        return Promise.reject({
+          code: codes.INVALID_PASSWORD
+        })
+      }
+
+      if(!pkg.username) {
+        return Promise.reject({
+          code: codes.INVALID_USERNAME
+        })
+      }
+
+      pkg.email = pkg.email.toLowerCase()
+      pkg.username = pkg.username.toLowerCase()
+
+      pkg.hash = await new PasswordService().issue(pkg.password)
+      delete pkg.password
+
     }
-
-    if(!pkg.email) {
-      return Promise.reject({
-        code: codes.INVALID_EMAIL
-      })
-    }
-
-    if(!pkg.organizationId) {
-      return Promise.reject({
-        code: codes.INVALID_ORGANIZATION
-      })
-    }
-
-    if(!pkg.password) {
-      return Promise.reject({
-        code: codes.INVALID_PASSWORD
-      })
-    }
-
-    if(!pkg.username) {
-      return Promise.reject({
-        code: codes.INVALID_USERNAME
-      })
-    }
-
-    pkg.email = pkg.email.toLowerCase()
-    pkg.username = pkg.username.toLowerCase()
-
-    pkg.hash = await new PasswordService().issue(pkg.password)
-    delete pkg.password
 
     return Promise
       .all([
-        userModel.getByEmail(pkg.email),
-        userModel.getByUsername(pkg.username)
+        (strictMode) ? userModel.getByEmail(pkg.email) : false,
+        (strictMode) ? userModel.getByUsername(pkg.username) : false
       ])
       .then((response) => {
+        const duplicateEmail = response[0]
+        const duplicateUsername = response[1]
 
-        if((!response[0] || response[0].length == 0) && (!response[1] || response[1].length == 0)) {
+        if(!duplicateEmail && !duplicateUsername) {
           return Promise.resolve()
         }
 
-        const code = (response[0]) ? codes.USER_DUPLICATE_EMAIL : codes.USER_DUPLICATE_USERNAME
+        const code = (duplicateEmail) ? codes.USER_DUPLICATE_EMAIL : codes.USER_DUPLICATE_USERNAME
 
         return Promise.reject({
           code,

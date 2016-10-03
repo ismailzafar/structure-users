@@ -291,6 +291,8 @@ describe('Routes', function() {
 
   it('should create a ghost user', async function() {
 
+    process.env.USER_REGISTRATION = 'loose'
+
     var res0 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/organizations`)
       .send({
@@ -309,6 +311,8 @@ describe('Routes', function() {
 
     expect(res.body.pkg.firstName).to.equal('Charlie')
     expect(res.body.status).to.equal(201)
+
+    process.env.USER_REGISTRATION = 'strict'
 
   })
 
