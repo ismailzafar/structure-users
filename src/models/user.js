@@ -121,10 +121,12 @@ export default class UserModel extends RootModel {
    */
   getByEmail(email) {
 
+    const state = ['active']
+
     return new Promise( async (resolve, reject) => {
 
       try {
-        var user = await this.r.table(this.table).filter({email}).limit(1)
+        var user = await this.r.table(this.table).getAll(...state, {index: '__state'}).filter({email}).limit(1)
 
         if(user[0]) return resolve(user[0])
 
@@ -147,10 +149,12 @@ export default class UserModel extends RootModel {
    */
   getByUsername(username) {
 
+    const state = ['active']
+
     return new Promise( async (resolve, reject) => {
 
       try {
-        var user = await this.r.table(this.table).filter({username}).limit(1)
+        var user = await this.r.table(this.table).getAll(...state, {index: '__state'}).filter({username}).limit(1)
 
         if(user[0]) return resolve(user[0])
 
