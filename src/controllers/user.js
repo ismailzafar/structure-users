@@ -113,12 +113,14 @@ export default class UsersController extends RootController {
         })
       }
 
-      pkg.email = pkg.email.toLowerCase()
-      pkg.username = pkg.username.toLowerCase()
+    }
 
+    if(pkg.email) pkg.email = pkg.email.toLowerCase()
+    if(pkg.username) pkg.username = pkg.username.toLowerCase()
+
+    if(pkg.password) {
       pkg.hash = await new PasswordService().issue(pkg.password)
       delete pkg.password
-
     }
 
     return Promise
