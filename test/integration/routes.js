@@ -43,7 +43,7 @@ describe.only('Routes', function() {
         password : 'foo88'
       })
 
-    expect(res.body.err.code).to.equal(codes.INVALID_USERNAME)
+    expect(res.body.err.code).to.equal(codes.MISSING_USERNAME)
 
   })
 
@@ -65,7 +65,7 @@ describe.only('Routes', function() {
         password : 'foo88'
       })
 
-    expect(res.body.err.code).to.equal(codes.INVALID_EMAIL)
+    expect(res.body.err.code).to.equal(codes.MISSING_EMAIL)
 
   })
 
@@ -87,7 +87,7 @@ describe.only('Routes', function() {
         email: 'woo@gfoo.com'
       })
 
-    expect(res.body.err.code).to.equal(codes.INVALID_PASSWORD)
+    expect(res.body.err.code).to.equal(codes.MISSING_PASSWORD)
 
   })
 
@@ -109,7 +109,7 @@ describe.only('Routes', function() {
         email: 'woo@gfoo.com'
       })
 
-    expect(res.body.err.code).to.equal(codes.INVALID_ORGANIZATION)
+    expect(res.body.err.code).to.equal(codes.MISSING_ORGANIZATIONID)
 
   })
 
@@ -146,7 +146,7 @@ describe.only('Routes', function() {
       .send(pkg2)
 
     expect(res2.body.status).to.equal(400)
-    expect(res2.body.err.code).to.equal(codes.USER_DUPLICATE_USERNAME)
+    expect(res2.body.err.code).to.equal(codes.DUPLICATE_USERNAME)
 
   })
 
@@ -183,7 +183,7 @@ describe.only('Routes', function() {
       .send(pkg2)
 
     expect(res2.body.status).to.equal(400)
-    expect(res2.body.err.code).to.equal(codes.USER_DUPLICATE_USERNAME)
+    expect(res2.body.err.code).to.equal(codes.DUPLICATE_USERNAME)
 
   })
 
@@ -220,7 +220,7 @@ describe.only('Routes', function() {
       .send(pkg2)
 
     expect(res.body.status).to.equal(400)
-    expect(res.body.err.code).to.equal(codes.USER_DUPLICATE_EMAIL)
+    expect(res.body.err.code).to.equal(codes.DUPLICATE_EMAIL)
 
   })
 
@@ -257,7 +257,7 @@ describe.only('Routes', function() {
       .send(pkg2)
 
     expect(res.body.status).to.equal(400)
-    expect(res.body.err.code).to.equal(codes.USER_DUPLICATE_EMAIL)
+    expect(res.body.err.code).to.equal(codes.DUPLICATE_EMAIL)
 
   })
 
@@ -286,7 +286,7 @@ describe.only('Routes', function() {
 
   })
 
-  it('should create a ghost user', async function() {
+  it.skip('should create a ghost user', async function() {
 
     process.env.USER_REGISTRATION = 'loose'
 
@@ -302,8 +302,7 @@ describe.only('Routes', function() {
       .post(`/api/${process.env.API_VERSION}/users`)
       .send({
         organizationId: org.id,
-        firstName: 'Charlie',
-        __ghost: true
+        firstName: 'Charlie'
       })
 
     expect(res.body.pkg.firstName).to.equal('Charlie')

@@ -83,69 +83,14 @@ export default class UsersController extends RootController {
    */
   async create(req, res) {
     const pkg = req.body
-    const userRegistrationMode = (process.env.USER_REGISTRATION) ? process.env.USER_REGISTRATION : 'strict'
     const userModel = new UserModel()
-    const strictMode = userRegistrationMode == 'strict'
-
-    if(strictMode) {
-
-      if(!pkg.email) {
-        return Promise.reject({
-          code: codes.INVALID_EMAIL
-        })
-      }
-
-      if(!pkg.organizationId) {
-        return Promise.reject({
-          code: codes.INVALID_ORGANIZATION
-        })
-      }
-
-      if(!pkg.password) {
-        return Promise.reject({
-          code: codes.INVALID_PASSWORD
-        })
-      }
-
-      if(!pkg.username) {
-        return Promise.reject({
-          code: codes.INVALID_USERNAME
-        })
-      }
-
-    }
-
-    if(pkg.email) pkg.email = pkg.email.toLowerCase()
-    if(pkg.username) pkg.username = pkg.username.toLowerCase()
 
     if(pkg.password) {
       pkg.hash = await new PasswordService().issue(pkg.password)
       delete pkg.password
     }
 
-    return Promise
-      .all([
-        (pkg.email) ? userModel.getByEmail(pkg.email) : false,
-        (pkg.username) ? userModel.getByUsername(pkg.username) : false
-      ])
-      .then((response) => {
-        const duplicateEmail = response[0]
-        const duplicateUsername = response[1]
-
-        if(!duplicateEmail && !duplicateUsername) {
-          return Promise.resolve()
-        }
-
-        const code = (duplicateEmail) ? codes.USER_DUPLICATE_EMAIL : codes.USER_DUPLICATE_USERNAME
-
-        return Promise.reject({
-          code,
-          message: 'User already exists'
-        })
-      })
-      .then(() => {
-        return userModel.create(pkg)
-      })
+    return userModel.create(pkg)
   }
 
   /**
@@ -245,11 +190,20 @@ export default class UsersController extends RootController {
    * @param {Object} req - Express req
    * @param {Object} res - Express res
    */
-  updateById(req, res) {
+  async updateById(req, res) {
 
+    let pkg = req.body
     var user = new UserModel()
 
-    return user.updateById(req.params.id, req.body)
+    if(pkg.password) {
+      const token = Object.assign({}, pkg.token)
+      delete pkg.token
+
+      pkg.hash = await new PasswordService().issue(pkg.password)
+      delete pkg.password
+    }
+
+    return user.updateById(req.params.id, pkg)
 
   }
 
