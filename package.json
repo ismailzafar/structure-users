@@ -1,6 +1,6 @@
 {
   "name": "structure-users",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
@@ -11,7 +11,7 @@
     "structure-dispatcher": "0.0.21",
     "structure-password-service": "0.0.1",
     "structure-root-controller": "0.0.3",
-    "structure-root-model": "0.0.9",
+    "structure-root-model": "0.0.11",
     "structure-token-service": "0.0.1"
   },
   "devDependencies": {
