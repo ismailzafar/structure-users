@@ -25,5 +25,8 @@ const settings = {
   pluginName: 'users'
 }
 
+const UserModel = Model
+
 export {resources}
 export {settings}
+export {UserModel}

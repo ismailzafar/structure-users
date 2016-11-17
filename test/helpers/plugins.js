@@ -5,5 +5,6 @@ export default [
   'structure-organizations',
   Plugin,
   'structure-groups',
+  //'structure-digital-assets',
   errors()
 ]

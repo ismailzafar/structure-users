@@ -1,4 +1,6 @@
 import codes from '../lib/error-codes'
+import {resources as daResources} from 'structure-digital-assets'
+const DigitalAssetModel = daResources.models.DigitalAsset
 import logger from 'structure-logger'
 import RootModel from 'structure-root-model'
 
@@ -113,6 +115,56 @@ export default class UserModel extends RootModel {
 
   }
 
+  getAll() {
+
+    const da = new DigitalAssetModel()
+    const state = ['active']
+
+    return new Promise( async (resolve, reject) => {
+
+      try {
+
+        const users = []
+
+        const res = await this.r
+          .table(this.table)
+          .getAll(...state, {index: '__state'})
+          //.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'})
+
+        for(let i = 0, l = res.length; i < l; i++) {
+          const item = res[i]
+          const user = item
+          //user.avatar = item.right
+
+          if(user.imageId && user.imageId.length > 1) {
+            //user.avatar = await da.getById(user.imageId)
+            users.push(da.getById(user.imageId).then( (avatar) => {
+              user.avatar = avatar
+
+              return user
+            }))
+          }
+          else {
+            users.push(user)
+          }
+
+        }
+
+        Promise
+          .all(users)
+          .then( (u) => {
+            resolve(u)
+          })
+
+      }
+      catch(e) {
+        reject(e)
+      }
+
+    })
+
+  }
+
   /**
    * Get user by email
    *
@@ -139,6 +191,31 @@ export default class UserModel extends RootModel {
       }
 
     })
+  }
+
+  getById(id) {
+
+    const da = new DigitalAssetModel()
+
+    return new Promise( async (resolve, reject) => {
+
+      try {
+
+        const user = await RootModel.prototype.getById.call(this, id)
+
+        if(user.imageId && user.imageId.length > 1) {
+          user.avatar = await da.getById(user.imageId)
+        }
+
+        resolve(user)
+
+      }
+      catch(e) {
+        reject(e)
+      }
+
+    })
+
   }
 
   /**

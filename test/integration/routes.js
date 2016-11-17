@@ -14,6 +14,12 @@ describe.only('Routes', function() {
 
     this.migration = new Migrations({
       db: 'test',
+      items: {
+        tables: [{
+          action: 'create',
+          table: 'digital_assets',
+        }],
+      },
       plugins: pluginsList
     })
 

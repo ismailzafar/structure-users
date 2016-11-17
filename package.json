@@ -1,6 +1,6 @@
 {
   "name": "structure-users",
-  "version": "0.0.18",
+  "version": "0.0.22",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
@@ -8,6 +8,7 @@
     "babel-polyfill": "^6.13.0",
     "babel-runtime": "^6.11.6",
     "express": "^4.14.0",
+    "structure-digital-assets": "0.0.19",
     "structure-dispatcher": "0.0.21",
     "structure-password-service": "0.0.1",
     "structure-root-controller": "0.0.3",
