@@ -115,9 +115,10 @@ export default class UserModel extends RootModel {
 
   }
 
-  getAll() {
+  getAll(ids = []) {
 
     const da = new DigitalAssetModel()
+    const r = this.r
     const state = ['active']
 
     return new Promise( async (resolve, reject) => {
@@ -126,10 +127,26 @@ export default class UserModel extends RootModel {
 
         const users = []
 
-        const userRes = await this.r
+        let query = r
           .table(this.table)
-          .getAll(...state, {index: '__state'})
-          //.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'}) <-- won't work as not evey user has an image :/
+
+        if(ids.length > 0) {
+
+          query = query
+            .getAll(r.args(ids))
+            .filter(function(doc) {
+              return r.expr(state).contains(doc('__state'))
+            })
+
+        }
+
+        else {
+          query = query.getAll(...state, {index: '__state'})
+        }
+
+        //query = query.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'}) <-- won't work as not evey user has an image :/
+
+        const userRes = await query.run()
 
         const digitalAssetIds = []
 
@@ -138,9 +155,9 @@ export default class UserModel extends RootModel {
           if(user.imageId) digitalAssetIds.push(user.imageId)
         }
 
-        const daRes = await this.r
+        const daRes = await r
           .table('digital_assets')
-          .getAll(digitalAssetIds)
+          .getAll(r.args(digitalAssetIds))
 
         const daMap = new Map()
         for(let i = 0, l = daRes.length; i < l; i++) {
