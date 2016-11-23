@@ -5,7 +5,15 @@ export default {
       table: 'users',
       indexes: [
         'email',
+        'firstName',
+        'lastName',
         'username'
+      ],
+      compoundIndexes: [
+        {
+          name: 'fullName',
+          indexes: ['firstName', 'lastName']
+        }
       ]
     },
     {

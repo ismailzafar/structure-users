@@ -126,35 +126,41 @@ export default class UserModel extends RootModel {
 
         const users = []
 
-        const res = await this.r
+        const userRes = await this.r
           .table(this.table)
           .getAll(...state, {index: '__state'})
-          //.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'})
+          //.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'}) <-- won't work as not evey user has an image :/
 
-        for(let i = 0, l = res.length; i < l; i++) {
-          const item = res[i]
-          const user = item
-          //user.avatar = item.right
+        const digitalAssetIds = []
+
+        for(let i = 0, l = userRes.length; i < l; i++) {
+          const user = userRes[i]
+          if(user.imageId) digitalAssetIds.push(user.imageId)
+        }
+
+        const daRes = await this.r
+          .table('digital_assets')
+          .getAll(digitalAssetIds)
+
+        const daMap = new Map()
+        for(let i = 0, l = daRes.length; i < l; i++) {
+          const da = daRes[i]
+
+          daMap.set(da.id, da)
+        }
+
+        for(let i = 0, l = userRes.length; i < l; i++) {
+          const user = userRes[i]
 
           if(user.imageId && user.imageId.length > 1) {
-            //user.avatar = await da.getById(user.imageId)
-            users.push(da.getById(user.imageId).then( (avatar) => {
-              user.avatar = avatar
+            user.avatar = daMap.get(user.imageId)
+          }
 
-              return user
-            }))
-          }
-          else {
-            users.push(user)
-          }
+          users.push(user)
 
         }
 
-        Promise
-          .all(users)
-          .then( (u) => {
-            resolve(u)
-          })
+        resolve(users)
 
       }
       catch(e) {
