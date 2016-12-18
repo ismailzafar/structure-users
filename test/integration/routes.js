@@ -2,11 +2,8 @@ import codes from '../../src/lib/error-codes'
 import Migrations from 'structure-migrations'
 import MockHTTPServer from '../helpers/mock-http-server'
 import pluginsList from '../helpers/plugins'
-import r from '../helpers/driver'
 import UserController from '../../src/controllers/user'
 import UserModel from '../../src/models/user'
-
-Migrations.prototype.r = r
 
 describe.only('Routes', function() {
 
@@ -642,7 +639,7 @@ describe.only('Routes', function() {
     const user2 = userRes2.body.pkg
 
     var deleteRes = await server
-      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/purge`)
+      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/destroy`)
       .send()
 
     const results1 = await Promise
@@ -675,7 +672,7 @@ describe.only('Routes', function() {
 
   })
 
-  it('should delete user references when user is purged', async function() {
+  it('should delete user references when user is destroyed', async function() {
 
     const server = new MockHTTPServer()
 
@@ -731,7 +728,7 @@ describe.only('Routes', function() {
     const user2 = userRes2.body.pkg
 
     var deleteRes = await server
-      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/purge`)
+      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/destroy`)
       .send()
 
     const results1 = await Promise

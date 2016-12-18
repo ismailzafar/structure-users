@@ -21,7 +21,7 @@ router.patch(`/:id`, dispatch(controller, 'updateById'), respond())
 
 router.post(`/`, schemaCreate, dispatch(controller, 'create'), respond())
 
-router.delete(`/:id/purge`, dispatch(controller, 'purgeById'), respond())
+router.delete(`/:id/destroy`, dispatch(controller, 'destroyById'), respond())
 router.delete(`/:id`, dispatch(controller, 'deleteById'), respond())
 
 export default function routes(options = {}) {

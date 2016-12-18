@@ -2,6 +2,7 @@ import codes from '../lib/error-codes'
 import {resources as daResources} from 'structure-digital-assets'
 const DigitalAssetModel = daResources.models.DigitalAsset
 import logger from 'structure-logger'
+import r from 'structure-driver'
 import RootModel from 'structure-root-model'
 
 /**
@@ -23,13 +24,6 @@ export default class UserModel extends RootModel {
     super(Object.assign({}, {
       table: 'users',
 
-      permissions: {
-        create:  ['admin'],
-        delete:  ['admin'],
-        read:    ['organization'],
-        replace: ['admin'],
-        update:  ['self', 'admin'],
-      },
       relations: {
         hasMany: [
           {
@@ -98,6 +92,8 @@ export default class UserModel extends RootModel {
 
     return new Promise( async (resolve, reject) => {
 
+      pkg.status = 'active'
+
       try {
         var doc = await RootModel.prototype.create.call(this, pkg, options)
 
@@ -115,11 +111,10 @@ export default class UserModel extends RootModel {
 
   }
 
-  getAll(ids = []) {
+  getAll(ids = [], options = {}) {
 
     const da = new DigitalAssetModel()
-    const r = this.r
-    const state = ['active']
+    const status = ['active']
 
     return new Promise( async (resolve, reject) => {
 
@@ -135,13 +130,13 @@ export default class UserModel extends RootModel {
           query = query
             .getAll(r.args(ids))
             .filter(function(doc) {
-              return r.expr(state).contains(doc('__state'))
+              return r.expr(status).contains(doc('status'))
             })
 
         }
 
         else {
-          query = query.getAll(...state, {index: '__state'})
+          query = query.getAll(r.args(status), {index: 'status'})
         }
 
         //query = query.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'}) <-- won't work as not evey user has an image :/
@@ -196,12 +191,12 @@ export default class UserModel extends RootModel {
    */
   getByEmail(email) {
 
-    const state = ['active']
+    const status = ['active']
 
     return new Promise( async (resolve, reject) => {
 
       try {
-        var user = await this.r.table(this.table).getAll(...state, {index: '__state'}).filter({email}).limit(1)
+        var user = await r.table(this.table).getAll(r.args(status), {index: 'status'}).filter({email}).limit(1)
 
         if(user[0]) return resolve(user[0])
 
@@ -249,12 +244,12 @@ export default class UserModel extends RootModel {
    */
   getByUsername(username) {
 
-    const state = ['active']
+    const status = ['active']
 
     return new Promise( async (resolve, reject) => {
 
       try {
-        var user = await this.r.table(this.table).getAll(...state, {index: '__state'}).filter({username}).limit(1)
+        var user = await r.table(this.table).getAll(r.args(status), {index: 'status'}).filter({username}).limit(1)
 
         if(user[0]) return resolve(user[0])
 
@@ -282,6 +277,7 @@ export default class UserModel extends RootModel {
 
     if(pkg.password) {
       logger.warn('User.update does not support property password; deleted.')
+
       delete pkg.password
     }
 
@@ -299,7 +295,7 @@ export default class UserModel extends RootModel {
    */
   updateProfile(id, pkg = {}, options = {}) {
 
-    return this.udpateById.apply(this, arguments)
+    return this.updateById.apply(this, arguments)
 
   }
 

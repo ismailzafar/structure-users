@@ -2,11 +2,9 @@ import codes from '../../src/lib/error-codes'
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
-import r from '../helpers/driver'
 import UserModel from '../../src/models/user'
 
 const OrganizationModel = organizationResources.models.Organization
-Migrations.prototype.r = r
 
 /** @test {UserModel} */
 describe('Model', function() {

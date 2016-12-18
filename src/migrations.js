@@ -7,6 +7,7 @@ export default {
         'email',
         'firstName',
         'lastName',
+        'status',
         'username'
       ],
       compoundIndexes: [

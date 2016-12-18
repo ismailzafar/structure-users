@@ -87,6 +87,7 @@ export default class UsersController extends RootController {
 
     if(pkg.password) {
       pkg.hash = await new PasswordService().issue(pkg.password)
+
       delete pkg.password
     }
 
@@ -105,6 +106,21 @@ export default class UsersController extends RootController {
     const user = new UserModel()
 
     return user.deleteById(req.params.id)
+
+  }
+
+  /**
+   * Destroy user by id
+   *
+   * @public
+   * @param {Object} req - Express req
+   * @param {Object} res - Express res
+   */
+  destroyById(req, res) {
+
+    const user = new UserModel()
+
+    return user.destroyById(req.params.id)
 
   }
 
@@ -165,21 +181,6 @@ export default class UsersController extends RootController {
     const user = new UserModel()
 
     return user.getByUsername(req.params.username)
-
-  }
-
-  /**
-   * Purge user by id
-   *
-   * @public
-   * @param {Object} req - Express req
-   * @param {Object} res - Express res
-   */
-  purgeById(req, res) {
-
-    const user = new UserModel()
-
-    return user.purgeById(req.params.id)
 
   }
 

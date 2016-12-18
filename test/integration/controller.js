@@ -1,14 +1,12 @@
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
-import r from '../helpers/driver'
 import RootController from 'structure-root-controller'
 import RootModel from 'structure-root-model'
 import UserController from '../../src/controllers/user'
 import UserModel from '../../src/models/user'
 
 const OrganizationController = organizationResources.controllers.Organization
-Migrations.prototype.r = r
 
 /** @test {UserController} */
 describe.skip('Controller', function() {
