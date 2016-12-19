@@ -506,7 +506,7 @@ describe.only('Routes', function() {
     var res2 = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
 
-    expect(res2.body.pkg.__state).to.equal('deleted')
+    expect(res2.body.pkg.status).to.equal('deleted')
 
   })
 
