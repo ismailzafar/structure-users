@@ -8,15 +8,16 @@
     "babel-runtime": "^6.11.6",
     "express": "^4.14.0",
     "structure-auth-entity": "0.0.15",
+    "structure-digital-assets": "0.0.61",
     "structure-dispatcher": "0.0.37",
     "structure-driver": "0.0.3",
     "structure-error-codes": "0.0.2",
     "structure-middleware": "0.0.3",
-    "structure-digital-assets": "0.0.61",
     "structure-password-service": "0.0.1",
     "structure-root-controller": "0.0.3",
     "structure-root-model": "0.0.19",
-    "structure-token-service": "0.0.1"
+    "structure-token-service": "0.0.1",
+    "supertest-as-promised": "^4.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.14.0",
