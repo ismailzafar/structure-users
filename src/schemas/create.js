@@ -75,7 +75,7 @@ if(strictMode) {
 
 const validate = ajv.compile(schema)
 
-export default function schemaCreate(req, res, next) {
+export default async function schemaCreate(req, res, next) {
 
   const pkg = req.body
 

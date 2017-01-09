@@ -37,9 +37,20 @@ describe.only('Routes', function() {
       })
 
     const org = res0.body.pkg
+    const orgId = org.id
+    var app = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/applications`)
+      .set('organizationid', orgId)
+      .send({
+        desc: '',
+        title: 'App 45'
+      })
+    const appId = app.body.pkg.id
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
         organizationId: org.id,
         email: 'testuser1@mail.com',
@@ -50,8 +61,9 @@ describe.only('Routes', function() {
 
   })
 
-  it('should not create a user; missing email', async function() {
+  it.only('should not create a user; missing email', async function() {
 
+    // getting an organization and application Ids
     var res0 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/organizations`)
       .send({
@@ -59,9 +71,20 @@ describe.only('Routes', function() {
       })
 
     const org = res0.body.pkg
+    const orgId = org.id
+    var app = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/applications`)
+      .set('organizationid', orgId)
+      .send({
+        desc: '',
+        title: 'App 45'
+      })
+    const appId = app.body.pkg.id
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
         organizationId: org.id,
         username: 'fpp',
