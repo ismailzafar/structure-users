@@ -1,7 +1,7 @@
 import middleware from './middleware'
 import pluginsInteface from 'structure-plugins'
 import pluginsList from './plugins'
-import request from 'supertest-as-promised'
+import request from 'supertest'
 import Router from 'structure-router'
 import Server from 'structure-server'
 

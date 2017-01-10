@@ -5,6 +5,27 @@ import pluginsList from '../helpers/plugins'
 import UserController from '../../src/controllers/user'
 import UserModel from '../../src/models/user'
 
+const createOrgAndApp = async function(){
+  // getting an organization and application Ids
+  var res0 = await new MockHTTPServer()
+    .post(`/api/${process.env.API_VERSION}/organizations`)
+    .send({
+      title: 'work it'
+    })
+
+  const org = res0.body.pkg
+  const orgId = org.id
+  var app = await new MockHTTPServer()
+    .post(`/api/${process.env.API_VERSION}/applications`)
+    .set('organizationid', orgId)
+    .send({
+      desc: '',
+      title: 'App 45'
+    })
+  const appId = app.body.pkg.id
+  return {orgId,appId}
+}
+
 describe.only('Routes', function() {
 
   before(function() {
@@ -29,30 +50,14 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; missing username', async function() {
-
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
-    const orgId = org.id
-    var app = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/applications`)
-      .set('organizationid', orgId)
-      .send({
-        desc: '',
-        title: 'App 45'
-      })
-    const appId = app.body.pkg.id
+    const {orgId,appId} = await createOrgAndApp()
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
       .set('organizationid',orgId)
       .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         email: 'testuser1@mail.com',
         password : 'foo88'
       })
@@ -61,32 +66,15 @@ describe.only('Routes', function() {
 
   })
 
-  it.only('should not create a user; missing email', async function() {
-
-    // getting an organization and application Ids
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
-    const orgId = org.id
-    var app = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/applications`)
-      .set('organizationid', orgId)
-      .send({
-        desc: '',
-        title: 'App 45'
-      })
-    const appId = app.body.pkg.id
+  it('should not create a user; missing email', async function() {
+    const {orgId,appId} = await createOrgAndApp()
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
       .set('organizationid',orgId)
       .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         username: 'fpp',
         password : 'foo88'
       })
@@ -96,19 +84,13 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; missing password', async function() {
-
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
-
+    const {orgId,appId} = await createOrgAndApp()
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         username: 'woober',
         email: 'woo@gfoo.com'
       })
@@ -118,17 +100,11 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; missing organization', async function() {
-
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
-
+    const {orgId,appId} = await createOrgAndApp()
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
         password: 'pumpitup',
         username: 'woober',
@@ -141,23 +117,17 @@ describe.only('Routes', function() {
 
   it('should not create a user; duplicate username', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg1 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password : 'foo88'
     }
 
     var pkg2 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser1',
       email: 'testuser2@mail.com',
       password : 'foo88'
@@ -165,10 +135,14 @@ describe.only('Routes', function() {
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg1)
 
     var res2 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg2)
 
     expect(res2.body.status).to.equal(400)
@@ -177,24 +151,16 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; duplicate username (case)', async function() {
-
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
-
+    const {orgId,appId} = await createOrgAndApp()
     var pkg1 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password : 'foo88'
     }
 
     var pkg2 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'Testuser1',
       email: 'testuser2@mail.com',
       password : 'foo88'
@@ -202,10 +168,14 @@ describe.only('Routes', function() {
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg1)
 
     var res2 = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg2)
 
     expect(res2.body.status).to.equal(400)
@@ -215,23 +185,17 @@ describe.only('Routes', function() {
 
   it('should not create a user; duplicate email', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg1 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password : 'foo88'
     }
 
     var pkg2 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser2',
       email: 'testuser1@mail.com',
       password : 'foo88'
@@ -239,10 +203,14 @@ describe.only('Routes', function() {
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg1)
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg2)
 
     expect(res.body.status).to.equal(400)
@@ -252,23 +220,17 @@ describe.only('Routes', function() {
 
   it('should not create a user; duplicate email (case)', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg1 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password : 'foo88'
     }
 
     var pkg2 = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser2',
       email: 'Testuser1@mail.com',
       password : 'foo88'
@@ -276,10 +238,14 @@ describe.only('Routes', function() {
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg1)
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg2)
 
     expect(res.body.status).to.equal(400)
@@ -289,18 +255,14 @@ describe.only('Routes', function() {
 
   it('should create a user', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         username: 'testuser1',
         email: 'testuser1@mail.com',
         password : 'foo88'
@@ -314,20 +276,15 @@ describe.only('Routes', function() {
 
   it.skip('should create a ghost user', async function() {
 
+    const {orgId,appId} = await createOrgAndApp()
     process.env.USER_REGISTRATION = 'loose'
-
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         firstName: 'Charlie'
       })
 
@@ -340,16 +297,10 @@ describe.only('Routes', function() {
 
   it('should get a user by Id', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser2',
       email: 'testuser2@mail.com',
       password : 'foo88'
@@ -357,12 +308,16 @@ describe.only('Routes', function() {
 
     var users = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
 
     var userId = users.body.pkg.id
 
     var res = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users/${userId}`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     expect(res.body.pkg.username).to.equal('testuser2')
     expect(res.body.pkg.email).to.equal('testuser2@mail.com')
@@ -371,17 +326,10 @@ describe.only('Routes', function() {
   })
 
   it('should get a user by email', async function() {
-
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser2',
       email: 'testuser2@mail.com',
       password : 'foo88'
@@ -389,12 +337,16 @@ describe.only('Routes', function() {
 
     var users = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
     //console.error('users.error', users.error)
     var userId = users.body.pkg.id
 
     var res = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users/email/testuser2@mail.com`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     expect(res.body.pkg.username).to.equal('testuser2')
     expect(res.body.pkg.email).to.equal('testuser2@mail.com')
@@ -404,16 +356,10 @@ describe.only('Routes', function() {
 
   it('should get a user by username', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser2',
       email: 'testuser2@mail.com',
       password : 'foo88'
@@ -421,12 +367,16 @@ describe.only('Routes', function() {
 
     var users = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
 
     var userId = users.body.pkg.id
 
     var res = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users/username/testuser2`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     expect(res.body.pkg.username).to.equal('testuser2')
     expect(res.body.pkg.email).to.equal('testuser2@mail.com')
@@ -436,16 +386,10 @@ describe.only('Routes', function() {
 
   it('should get all users', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser3',
       email: 'testuser@mail.com',
       password : 'foo88'
@@ -453,10 +397,14 @@ describe.only('Routes', function() {
 
     var users = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
 
     var res = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     expect(res.body.pkg.users.length).to.be.above(0)
     expect(res.body.status).to.equal(200)
@@ -465,16 +413,10 @@ describe.only('Routes', function() {
 
   it('should update a user by Id', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser4',
       email: 'testuser@mail.com',
       password : 'foo88'
@@ -482,18 +424,24 @@ describe.only('Routes', function() {
 
     var user = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
 
     var usersId = user.body.pkg.id
 
     var res = await new MockHTTPServer()
       .patch(`/api/${process.env.API_VERSION}/users/${usersId}`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
         username: 'updateduser4'
       })
 
     var res2 = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     expect(res2.body.pkg.username).to.equal('updateduser4')
     expect(res.body.status).to.equal(200)
@@ -502,16 +450,10 @@ describe.only('Routes', function() {
 
   it('should delete a user by Id', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser4',
       email: 'testuser@mail.com',
       password : 'foo88'
@@ -519,15 +461,21 @@ describe.only('Routes', function() {
 
     var user = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
 
     var usersId = user.body.pkg.id
 
     var res = await new MockHTTPServer()
       .delete(`/api/${process.env.API_VERSION}/users/${usersId}`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     var res2 = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     expect(res2.body.pkg.status).to.equal('deleted')
 
@@ -535,13 +483,7 @@ describe.only('Routes', function() {
 
   it.skip('should update a user by username', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: org.id,
@@ -552,18 +494,24 @@ describe.only('Routes', function() {
 
     var user = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
 
     var usersId = user.body.pkg.id
 
     var res = await new MockHTTPServer()
       .patch(`/api/${process.env.API_VERSION}/users/${usersId}`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
         username: 'updateduser4'
       })
 
     var res2 = await new MockHTTPServer()
       .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
 
     expect(res2.body.pkg.username).to.equal('updateduser4')
     expect(res.body.status).to.equal(200)
@@ -572,16 +520,10 @@ describe.only('Routes', function() {
 
   it('should check existence of key value pair', async function() {
 
-    var res0 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it'
-      })
-
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
     var pkg = {
-      organizationId: org.id,
+      organizationId: orgId,
       username: 'testuser4',
       email: 'testuser@mail.com',
       password : 'foo88'
@@ -589,6 +531,8 @@ describe.only('Routes', function() {
 
     var userRes = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send(pkg)
 
     var user = userRes.body.pkg
@@ -596,9 +540,14 @@ describe.only('Routes', function() {
     var res = await Promise
       .all([
         new MockHTTPServer()
-          .get(`/api/${process.env.API_VERSION}/users/existence/username/${user.username}`),
+          .get(`/api/${process.env.API_VERSION}/users/existence/username/${user.username}`)
+          .set('organizationid',orgId)
+          .set('applicationid',appId)
+          ,
         new MockHTTPServer()
           .get(`/api/${process.env.API_VERSION}/users/existence/email/johnny@brown.com`)
+          .set('organizationid',orgId)
+          .set('applicationid',appId)
       ])
 
     expect(res[0].body.pkg.exists).to.equal(true)
@@ -610,38 +559,24 @@ describe.only('Routes', function() {
 
     const server = new MockHTTPServer()
 
-    var res0 = await server
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it 1'
-      })
-
-    const org = res0.body.pkg
-
-    await server
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it 2'
-      })
+    const {orgId,appId} = await createOrgAndApp()
 
     var res1 = await server
       .post(`/api/${process.env.API_VERSION}/groups`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
         title: 'work it out 1'
       })
 
     const group = res1.body.pkg
 
-    await server
-      .post(`/api/${process.env.API_VERSION}/groups`)
-      .send({
-        title: 'work it out 2'
-      })
-
     var userRes1 = await server
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         groupId: group.id,
         username: 'testuser5',
         email: 'testuser@mail.com',
@@ -650,8 +585,10 @@ describe.only('Routes', function() {
 
     var userRes2 = await server
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         groupId: group.id,
         username: 'testuser6',
         email: 'testuser7@mail.com',
@@ -663,13 +600,21 @@ describe.only('Routes', function() {
 
     var deleteRes = await server
       .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/destroy`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send()
 
     const results1 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`),
-        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`),
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
         server.get(`/api/${process.env.API_VERSION}/users`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId)
       ])
 
     const orgs1 = results1[0].body.pkg.organizations
@@ -680,9 +625,15 @@ describe.only('Routes', function() {
 
     const results2 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`),
-        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`),
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
         server.get(`/api/${process.env.API_VERSION}/users`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId)
       ])
 
     const orgs2 = results2[0].body.pkg.organizations
@@ -699,22 +650,14 @@ describe.only('Routes', function() {
 
     const server = new MockHTTPServer()
 
-    var res0 = await server
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it 1'
-      })
 
-    const org = res0.body.pkg
+    const {orgId,appId} = await createOrgAndApp()
 
-    await server
-      .post(`/api/${process.env.API_VERSION}/organizations`)
-      .send({
-        title: 'work it 2'
-      })
 
     var res1 = await server
       .post(`/api/${process.env.API_VERSION}/groups`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
         title: 'work it out 1'
       })
@@ -729,8 +672,10 @@ describe.only('Routes', function() {
 
     var userRes1 = await server
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         groupId: group.id,
         username: 'testuser5',
         email: 'testuser@mail.com',
@@ -739,8 +684,10 @@ describe.only('Routes', function() {
 
     var userRes2 = await server
       .post(`/api/${process.env.API_VERSION}/users`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send({
-        organizationId: org.id,
+        organizationId: orgId,
         groupId: group.id,
         username: 'testuser6',
         email: 'testuser7@mail.com',
@@ -752,13 +699,21 @@ describe.only('Routes', function() {
 
     var deleteRes = await server
       .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/destroy`)
+      .set('organizationid',orgId)
+      .set('applicationid',appId)
       .send()
 
     const results1 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`),
-        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`),
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
         server.get(`/api/${process.env.API_VERSION}/users`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId)
       ])
 
     const orgs1 = results1[0].body.pkg.organizations
@@ -769,9 +724,15 @@ describe.only('Routes', function() {
 
     const results2 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`),
-        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`),
+        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
+        server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId),
         server.get(`/api/${process.env.API_VERSION}/users`)
+        .set('organizationid',orgId)
+        .set('applicationid',appId)
       ])
 
     const orgs2 = results2[0].body.pkg.organizations
