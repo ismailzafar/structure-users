@@ -23,7 +23,7 @@ const createOrgAndApp = async function(){
       title: 'App 45'
     })
   const appId = app.body.pkg.id
-  return {orgId,appId}
+  return {orgId, appId}
 }
 
 describe.only('Routes', function() {
@@ -50,7 +50,7 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; missing username', async function() {
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
@@ -67,7 +67,7 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; missing email', async function() {
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
@@ -84,7 +84,7 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; missing password', async function() {
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
       .set('organizationid',orgId)
@@ -100,7 +100,7 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; missing organization', async function() {
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
       .set('organizationid',orgId)
@@ -117,7 +117,7 @@ describe.only('Routes', function() {
 
   it('should not create a user; duplicate username', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg1 = {
       organizationId: orgId,
@@ -151,7 +151,7 @@ describe.only('Routes', function() {
   })
 
   it('should not create a user; duplicate username (case)', async function() {
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
     var pkg1 = {
       organizationId: orgId,
       username: 'testuser1',
@@ -185,7 +185,7 @@ describe.only('Routes', function() {
 
   it('should not create a user; duplicate email', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg1 = {
       organizationId: orgId,
@@ -220,7 +220,7 @@ describe.only('Routes', function() {
 
   it('should not create a user; duplicate email (case)', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg1 = {
       organizationId: orgId,
@@ -255,7 +255,7 @@ describe.only('Routes', function() {
 
   it('should create a user', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
@@ -276,7 +276,7 @@ describe.only('Routes', function() {
 
   it.skip('should create a ghost user', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
     process.env.USER_REGISTRATION = 'loose'
 
     var res = await new MockHTTPServer()
@@ -297,7 +297,7 @@ describe.only('Routes', function() {
 
   it('should get a user by Id', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: orgId,
@@ -326,7 +326,7 @@ describe.only('Routes', function() {
   })
 
   it('should get a user by email', async function() {
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: orgId,
@@ -356,7 +356,7 @@ describe.only('Routes', function() {
 
   it('should get a user by username', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: orgId,
@@ -386,7 +386,7 @@ describe.only('Routes', function() {
 
   it('should get all users', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: orgId,
@@ -413,7 +413,7 @@ describe.only('Routes', function() {
 
   it('should update a user by Id', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: orgId,
@@ -450,7 +450,7 @@ describe.only('Routes', function() {
 
   it('should delete a user by Id', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: orgId,
@@ -483,7 +483,7 @@ describe.only('Routes', function() {
 
   it.skip('should update a user by username', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: org.id,
@@ -520,7 +520,7 @@ describe.only('Routes', function() {
 
   it('should check existence of key value pair', async function() {
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var pkg = {
       organizationId: orgId,
@@ -559,7 +559,7 @@ describe.only('Routes', function() {
 
     const server = new MockHTTPServer()
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
     var res1 = await server
       .post(`/api/${process.env.API_VERSION}/groups`)
@@ -651,7 +651,7 @@ describe.only('Routes', function() {
     const server = new MockHTTPServer()
 
 
-    const {orgId,appId} = await createOrgAndApp()
+    const {orgId, appId} = await createOrgAndApp()
 
 
     var res1 = await server
