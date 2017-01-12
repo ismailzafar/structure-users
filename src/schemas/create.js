@@ -54,9 +54,6 @@ const schema = {
       "format": "email",
       "type": "string"
     },
-    "organizationId": {
-      "type": "string"
-    },
     "password": {
       "type": "string"
     },
@@ -69,7 +66,7 @@ const schema = {
 
 if(strictMode) {
 
-  schema.required = ['email', 'organizationId', 'password', 'username']
+  schema.required = ['email', 'password', 'username']
 
 }
 
