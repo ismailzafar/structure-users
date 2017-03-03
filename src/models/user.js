@@ -1,6 +1,5 @@
 import codes from '../lib/error-codes'
-import {resources as daResources} from 'structure-digital-assets'
-const DigitalAssetModel = daResources.models.DigitalAsset
+import {DigitalAssetModel} from 'structure-digital-assets'
 import logger from 'structure-logger'
 import r from 'structure-driver'
 import RootModel from 'structure-root-model'
