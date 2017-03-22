@@ -33,13 +33,20 @@ export default class UsersController extends RootController {
     */
    checkExistence(req, res) {
 
+     const applicationId = req.headers.applicationid
+     const organizationId = req.headers.organizationid
+     const userModel = new UserModel({
+       applicationId,
+       logger: this.logger,
+       organizationId
+     })
+
      const blacklist = [
        'hash',
        'password'
      ]
 
      const key = req.params.key.toLowerCase()
-     const userModel = new UserModel()
      const val = req.params.value.toLowerCase()
 
      return new Promise( async (resolve, reject) => {
@@ -83,7 +90,13 @@ export default class UsersController extends RootController {
    */
   async create(req, res) {
     const pkg = req.body
-    const userModel = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
     if(pkg.password) {
       pkg.hash = await new PasswordService().issue(pkg.password)
@@ -103,9 +116,15 @@ export default class UsersController extends RootController {
    */
   deleteById(req, res) {
 
-    const user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-    return user.deleteById(req.params.id)
+    return userModel.deleteById(req.params.id)
 
   }
 
@@ -118,9 +137,15 @@ export default class UsersController extends RootController {
    */
   destroyById(req, res) {
 
-    const user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-    return user.destroyById(req.params.id)
+    return userModel.destroyById(req.params.id)
 
   }
 
@@ -133,9 +158,15 @@ export default class UsersController extends RootController {
    */
   getAll(req, res) {
 
-    var user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-    return user.getAll()
+    return userModel.getAll()
 
   }
 
@@ -148,9 +179,15 @@ export default class UsersController extends RootController {
    */
   getByEmail(req, res) {
 
-    const user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-    return user.getByEmail(req.params.email)
+    return userModel.getByEmail(req.params.email)
 
   }
 
@@ -163,9 +200,15 @@ export default class UsersController extends RootController {
    */
   getById(req, res) {
 
-    var user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-    return user.getById(req.params.id)
+    return userModel.getById(req.params.id)
 
   }
 
@@ -178,9 +221,15 @@ export default class UsersController extends RootController {
    */
   getByUsername(req, res) {
 
-    const user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-    return user.getByUsername(req.params.username)
+    return userModel.getByUsername(req.params.username)
 
   }
 
@@ -194,7 +243,13 @@ export default class UsersController extends RootController {
   async updateById(req, res) {
 
     let pkg = req.body
-    var user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
     if(pkg.password) {
       const token = Object.assign({}, pkg.token)
@@ -204,15 +259,21 @@ export default class UsersController extends RootController {
       delete pkg.password
     }
 
-    return user.updateById(req.params.id, pkg)
+    return userModel.updateById(req.params.id, pkg)
 
   }
 
   updateProfile(req, res) {
 
-    const user = new UserModel()
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-    return user.updateProfile(req.params.id, req.body)
+    return userModel.updateProfile(req.params.id, req.body)
 
   }
 
