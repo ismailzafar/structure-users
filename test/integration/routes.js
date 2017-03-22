@@ -99,7 +99,7 @@ describe.only('Routes', function() {
 
   })
 
-  it('should not create a user; missing organization', async function() {
+  it.skip('should not create a user; missing organization', async function() {
     const {orgId, appId} = await createOrgAndApp()
     var res = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)

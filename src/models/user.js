@@ -1,6 +1,5 @@
 import codes from '../lib/error-codes'
 import {DigitalAssetModel} from 'structure-digital-assets'
-import logger from 'structure-logger'
 import r from 'structure-driver'
 import RootModel from 'structure-root-model'
 
@@ -99,7 +98,7 @@ export default class UserModel extends RootModel {
         resolve(doc)
       }
       catch(e) {
-        logger.error(e)
+        this.logger.error('Error creating user', e)
 
         reject({
           code: codes.UKNOWN
@@ -175,6 +174,8 @@ export default class UserModel extends RootModel {
 
       }
       catch(e) {
+        this.logger.error('Error getAll users', e)
+
         reject(e)
       }
 
@@ -202,6 +203,10 @@ export default class UserModel extends RootModel {
         resolve()
       }
       catch(e) {
+        this.logger.error('Error getting user by email', {
+          email,
+          err: e
+        })
 
         reject(e)
 
@@ -228,6 +233,11 @@ export default class UserModel extends RootModel {
 
       }
       catch(e) {
+        this.logger.error('Error getting user by id', {
+          id,
+          err: e
+        })
+
         reject(e)
       }
 
@@ -255,6 +265,10 @@ export default class UserModel extends RootModel {
         resolve()
       }
       catch(e) {
+        this.logger.error('Error getting user by username', {
+          username,
+          err: e
+        })
 
         reject(e)
 
