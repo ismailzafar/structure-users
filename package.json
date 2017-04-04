@@ -1,6 +1,6 @@
 {
   "name": "structure-users",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
@@ -13,6 +13,7 @@
     "structure-driver": "^0.1.1",
     "structure-error-codes": "^0.1.0",
     "structure-middleware": "^0.1.0",
+    "structure-organizations": "^0.1.6",
     "structure-password-service": "^0.1.0",
     "structure-root-controller": "^0.1.3",
     "structure-root-model": "^0.1.11",
@@ -39,7 +40,6 @@
     "structure-applications": "^0.1.6",
     "structure-groups": "^0.1.0",
     "structure-migrations": "^0.1.1",
-    "structure-organizations": "^0.1.4",
     "structure-plugins": "^0.1.0",
     "structure-router": "^0.1.0",
     "structure-server": "^0.1.0",

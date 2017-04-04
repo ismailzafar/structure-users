@@ -1,4 +1,5 @@
 import codes from '../lib/error-codes'
+import {OrganizationModel} from 'structure-organizations'
 import PasswordService from 'structure-password-service'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
@@ -202,13 +203,50 @@ export default class UsersController extends RootController {
 
     const applicationId = req.headers.applicationid
     const organizationId = req.headers.organizationid
+
+    const organizationModel = new OrganizationModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
+
     const userModel = new UserModel({
       applicationId,
       logger: this.logger,
       organizationId
     })
 
-    return userModel.getById(req.params.id)
+    return new Promise( async (resolve, reject) => {
+
+      const id = req.params.id
+
+      try {
+
+        const result = await Promise.all([
+          userModel.getById(id),
+          organizationModel.ofUser(id)
+        ])
+
+        const user = result[0]
+        user.organizationIds = []
+        user.organizations = result[1] || []
+
+        for(let i = 0, l = user.organizations.length; i < l; i++) {
+          const org = user.organizations[i]
+
+          user.organizationIds.push(org.id)
+        }
+
+        resolve(user)
+
+      }
+      catch(e) {
+        this.logger.error('Could not getById', e)
+
+        reject(e)
+      }
+
+    })
 
   }
 
