@@ -7,7 +7,7 @@ import UserModel from '../../src/models/user'
 const OrganizationModel = organizationResources.models.Organization
 
 /** @test {UserModel} */
-describe('Model', function() {
+describe.skip('Model', function() {
 
   beforeEach(function() {
 

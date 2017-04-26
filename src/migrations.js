@@ -19,6 +19,17 @@ export default {
     },
     {
       action: 'create',
+      table: 'applications',
+      indexes: [
+        {
+          name: 'hostnames',
+          multi: true
+        },
+        'organizationId'
+      ]
+    },
+    {
+      action: 'create',
       table: 'link_users_documents',
       indexes: [
         'userId',

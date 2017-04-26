@@ -26,7 +26,24 @@ const createOrgAndApp = async function(){
   return {orgId, appId}
 }
 
-describe.only('Routes', function() {
+const updateAndGetUserById = async function(orgId, appId, usersId, pkg){
+  const res = await new MockHTTPServer()
+    .patch(`/api/${process.env.API_VERSION}/users/${usersId}`)
+    .set('organizationid',orgId)
+    .set('applicationid',appId)
+    .send(pkg)
+
+  expect(res.body.status).to.equal(200)
+
+  const res2 = await new MockHTTPServer()
+    .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
+    .set('organizationid',orgId)
+    .set('applicationid',appId)
+
+  return res2
+}
+
+describe('Routes', function() {
 
   before(function() {
 
@@ -415,36 +432,56 @@ describe.only('Routes', function() {
 
     const {orgId, appId} = await createOrgAndApp()
 
-    var pkg = {
+    const pkg = {
       organizationId: orgId,
       username: 'testuser4',
       email: 'testuser@mail.com',
       password : 'foo88'
     }
 
-    var user = await new MockHTTPServer()
+    const user = await new MockHTTPServer()
       .post(`/api/${process.env.API_VERSION}/users`)
       .set('organizationid',orgId)
       .set('applicationid',appId)
       .send(pkg)
 
-    var usersId = user.body.pkg.id
+    const usersId = user.body.pkg.id
 
-    var res = await new MockHTTPServer()
-      .patch(`/api/${process.env.API_VERSION}/users/${usersId}`)
+    const res = await updateAndGetUserById(orgId, appId, usersId, {
+      username: 'updateduser4'
+    })
+    expect(res.body.pkg.username).to.equal('updateduser4')
+
+  })
+
+  it('should update a users organizations', async function() {
+
+    const {orgId, appId} = await createOrgAndApp()
+
+    const pkg = {
+      organizationId: orgId,
+      username: 'testuser4',
+      email: 'testuser@mail.com',
+      password : 'foo88'
+    }
+
+    const user = await new MockHTTPServer()
+      .post(`/api/${process.env.API_VERSION}/users`)
       .set('organizationid',orgId)
       .set('applicationid',appId)
-      .send({
-        username: 'updateduser4'
-      })
+      .send(pkg)
 
-    var res2 = await new MockHTTPServer()
-      .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
+    const usersId = user.body.pkg.id
 
-    expect(res2.body.pkg.username).to.equal('updateduser4')
-    expect(res.body.status).to.equal(200)
+    const res = await updateAndGetUserById(orgId, appId, usersId, {
+      organizationIds: [orgId]
+    })
+    expect(res.body.pkg.organizationIds).to.eql([orgId])
+
+    const res2 = await updateAndGetUserById(orgId, appId, usersId, {
+      organizationIds: []
+    })
+    expect(res2.body.pkg.organizationIds).to.eql([])
 
   })
 
