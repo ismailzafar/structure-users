@@ -5,11 +5,11 @@ import request from 'supertest'
 import Router from 'structure-router'
 import Server from 'structure-server'
 
-const plugins = pluginsInteface({
-  list: pluginsList
-})
-
 function MockHTTPServer(options = {}) {
+
+  const plugins = pluginsInteface({
+    list: pluginsList
+  })
 
   const api = new Server({
     router: new Router({
