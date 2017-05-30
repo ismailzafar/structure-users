@@ -5,11 +5,13 @@ import RootController from 'structure-root-controller'
 import RootModel from 'structure-root-model'
 import UserController from '../../src/controllers/user'
 import UserModel from '../../src/models/user'
+import {OrganizationModel} from 'structure-organizations'
+import {ApplicationModel} from 'structure-applications'
 
 const OrganizationController = organizationResources.controllers.Organization
 
 /** @test {UserController} */
-describe.skip('Controller', function() {
+describe('Controller', function() {
 
   beforeEach(function() {
 
@@ -29,7 +31,7 @@ describe.skip('Controller', function() {
   })
 
   /** @test {UserController#create} */
-  it('should create an user', async function() {
+  it.skip('should create an user', async function() {
 
     var user = new UserController(),
     organization = new OrganizationController()
@@ -62,7 +64,7 @@ describe.skip('Controller', function() {
 
 
   /** @test {UserController#getById} */
-  it('should get by ID', async function() {
+  it.skip('should get by ID', async function() {
 
     var user = new UserController({
     })
@@ -92,7 +94,7 @@ describe.skip('Controller', function() {
   })
 
   /** @test {UserModel#getAll} */
-  it('should get all', async function() {
+  it.skip('should get all', async function() {
 
     var user = new UserController({
     })
@@ -114,7 +116,7 @@ describe.skip('Controller', function() {
   })
 
   /** @test {UserController#update} */
-  it('should update a user', async function() {
+  it.skip('should update a user', async function() {
 
     var user = new UserController()
 
@@ -144,6 +146,108 @@ describe.skip('Controller', function() {
     expect(res2.email).to.equal('ted14@email.com')
     expect(res.password).to.be.undefined
     expect(res.hash).to.be.a('string')
+
+  })
+
+  /** @test {UserController#update} */
+  it('should update a users organizations', async function() {
+
+    const organizationModel = new OrganizationModel()
+    const organization = await organizationModel.create({
+      desc:'cool organization',
+      title:'My organization'
+    })
+    const organizationId = organization.id
+    const organization2 = await organizationModel.create({
+      desc:'cool organization2',
+      title:'My organization2'
+    })
+    const organizationId2 = organization2.id
+
+    const applicationModel = new ApplicationModel({
+      organizationId
+    })
+    const application = await applicationModel.create({
+      desc: '',
+      title: 'My App'
+    })
+    const applicationId = application.id
+
+    const user = new UserController()
+
+    const req = {
+      body: {
+        username: 'ted1talks3003',
+        email: 'ted13@email.com',
+        password: 'foo88'
+      },
+      headers: {
+        applicationid: applicationId,
+        organizationid: organizationId
+      }
+    }
+
+    const res = await user.create(req)
+
+    const req1 = {
+      body: {
+        organizationIds: [organizationId, organizationId2]
+      },
+      params: {
+        id: res.id
+      },
+      headers: {
+        applicationid: applicationId,
+        organizationid: organizationId
+      }
+    }
+
+    const res1 = await user.updateById(req1)
+
+    const req2 = {
+      params: {
+        id: res.id
+      },
+      headers: {
+        applicationid: applicationId,
+        organizationid: organizationId
+      }
+    }
+
+    const res2 = await user.getById(req2)
+
+    expect(res1.organizationIds).to.eql([organizationId, organizationId2])
+    expect(res2.organizationIds).to.eql([organizationId, organizationId2])
+
+    const req3 = {
+      body: {
+        organizationIds: [organizationId]
+      },
+      params: {
+        id: res.id
+      },
+      headers: {
+        applicationid: applicationId,
+        organizationid: organizationId
+      }
+    }
+
+    const res3 = await user.updateById(req3)
+
+    const req4 = {
+      params: {
+        id: res.id
+      },
+      headers: {
+        applicationid: applicationId,
+        organizationid: organizationId
+      }
+    }
+
+    const res4 = await user.getById(req4)
+
+    expect(res3.organizationIds).to.eql([organizationId])
+    expect(res4.organizationIds).to.eql([organizationId])
 
   })
 

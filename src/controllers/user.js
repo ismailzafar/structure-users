@@ -1,5 +1,5 @@
 import codes from '../lib/error-codes'
-import {OrganizationModel} from 'structure-organizations'
+import {OrganizationModel, UserService} from 'structure-organizations'
 import PasswordService from 'structure-password-service'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
@@ -281,9 +281,15 @@ export default class UsersController extends RootController {
   async updateById(req, res) {
 
     let pkg = req.body
+    const userId = req.params.id
     const applicationId = req.headers.applicationid
     const organizationId = req.headers.organizationid
     const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
+    const organizationModel = new OrganizationModel({
       applicationId,
       logger: this.logger,
       organizationId
@@ -297,7 +303,30 @@ export default class UsersController extends RootController {
       delete pkg.password
     }
 
-    return userModel.updateById(req.params.id, pkg)
+    if (pkg.organizationIds) {
+      const userOrganizations = await organizationModel.ofUser(userId)
+      const existingOrganizations = userOrganizations.map(({id}) => id)
+
+      const orgsToRemove = existingOrganizations.filter((i) => {
+        return pkg.organizationIds.indexOf(i) < 0;
+      })
+
+      const orgsToAdd = pkg.organizationIds.filter((i) => {
+        return existingOrganizations.indexOf(i) < 0;
+      })
+
+      for (const organizationId of orgsToRemove) {
+        const userService = new UserService(organizationId, userId, this.logger)
+        await userService.removeUser()
+      }
+
+      for (const organizationId of orgsToAdd) {
+        const userService = new UserService(organizationId, userId, this.logger)
+        await userService.addUser()
+      }
+    }
+
+    return userModel.updateById(userId, pkg)
 
   }
 
