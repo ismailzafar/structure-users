@@ -90,7 +90,7 @@ export default class UsersController extends RootController {
    * @param {Object} res - Express res
    */
   async create(req, res) {
-    const pkg = req.body
+    const pkg = Object.assign({}, req.body)
     const applicationId = req.headers.applicationid
     const organizationId = req.headers.organizationid
     const userModel = new UserModel({
@@ -99,11 +99,7 @@ export default class UsersController extends RootController {
       organizationId
     })
 
-    if(pkg.password) {
-      pkg.hash = await new PasswordService().issue(pkg.password)
-
-      delete pkg.password
-    }
+    delete pkg.password
 
     return userModel.create(pkg)
   }
@@ -280,7 +276,7 @@ export default class UsersController extends RootController {
    */
   async updateById(req, res) {
 
-    let pkg = req.body
+    let pkg = Object.assign({}, req.body)
     const userId = req.params.id
     const applicationId = req.headers.applicationid
     const organizationId = req.headers.organizationid
@@ -295,13 +291,7 @@ export default class UsersController extends RootController {
       organizationId
     })
 
-    if(pkg.password) {
-      const token = Object.assign({}, pkg.token)
-      delete pkg.token
-
-      pkg.hash = await new PasswordService().issue(pkg.password)
-      delete pkg.password
-    }
+    delete pkg.password
 
     if (pkg.organizationIds) {
       const userOrganizations = await organizationModel.ofUser(userId)

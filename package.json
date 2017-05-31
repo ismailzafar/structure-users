@@ -1,23 +1,22 @@
 {
   "name": "structure-users",
-  "version": "0.1.5",
+  "version": "0.1.6-alpha.1",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
     "ajv": "^4.11.3",
     "babel-runtime": "^6.23.0",
     "express": "^4.15.0",
-    "structure-auth-entity": "^0.1.0",
     "structure-digital-assets": "^0.1.2",
-    "structure-dispatcher": "^0.1.7",
+    "structure-dispatcher": "^0.1.13",
     "structure-driver": "^0.1.1",
-    "structure-error-codes": "^0.1.0",
     "structure-middleware": "^0.1.0",
-    "structure-organizations": "^0.1.7",
+    "structure-organizations": "^0.1.8-alpha.5",
     "structure-password-service": "^0.1.0",
     "structure-root-controller": "^0.1.3",
     "structure-root-model": "^0.1.11",
-    "structure-token-service": "^0.1.0"
+    "structure-token-service": "^0.1.0",
+    "structure-validation-schema-middleware": "^0.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.23.0",
@@ -37,7 +36,7 @@
     "reqlite": "^2.3.0",
     "sinon": "^1.17.7",
     "sinon-chai": "^2.8.0",
-    "structure-applications": "^0.1.6",
+    "structure-applications": "^0.1.8-alpha.2",
     "structure-groups": "^0.1.0",
     "structure-migrations": "^0.1.3",
     "structure-plugins": "^0.1.0",

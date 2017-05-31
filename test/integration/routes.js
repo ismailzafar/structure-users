@@ -4,46 +4,18 @@ import MockHTTPServer from '../helpers/mock-http-server'
 import pluginsList from '../helpers/plugins'
 import UserController from '../../src/controllers/user'
 import UserModel from '../../src/models/user'
+import TestAPI from '../helpers/test-api'
+import OrgTestAPI from 'structure-organizations/test/helpers/test-api'
+import AppTestAPI from 'structure-applications/test/helpers/test-api'
 
-const createOrgAndApp = async function(){
-  // getting an organization and application Ids
-  var res0 = await new MockHTTPServer()
-    .post(`/api/${process.env.API_VERSION}/organizations`)
-    .send({
-      title: 'work it'
-    })
-
-  const org = res0.body.pkg
-  const orgId = org.id
-  var app = await new MockHTTPServer()
-    .post(`/api/${process.env.API_VERSION}/applications`)
-    .set('organizationid', orgId)
-    .send({
-      desc: '',
-      title: 'App 45'
-    })
-  const appId = app.body.pkg.id
-  return {orgId, appId}
-}
-
-const updateAndGetUserById = async function(orgId, appId, usersId, pkg){
-  const res = await new MockHTTPServer()
-    .patch(`/api/${process.env.API_VERSION}/users/${usersId}`)
-    .set('organizationid',orgId)
-    .set('applicationid',appId)
-    .send(pkg)
-
-  expect(res.body.status).to.equal(200)
-
-  const res2 = await new MockHTTPServer()
-    .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
-    .set('organizationid',orgId)
-    .set('applicationid',appId)
-
-  return res2
-}
+const server =  new MockHTTPServer()
+const testApi = new TestAPI(server)
+const orgTestApi = new OrgTestAPI(server)
+const appTestApi = new AppTestAPI(server)
 
 describe('Routes', function() {
+
+  let orgId, appId
 
   before(function() {
 
@@ -62,248 +34,368 @@ describe('Routes', function() {
 
   })
 
+  beforeEach(async function() {
+    const orgRes = await orgTestApi.create({
+      title: 'work it'
+    })
+    orgId = orgRes.body.pkg.id
+
+    const appRes = await appTestApi.create(orgId, {
+      title: 'App 45'
+    })
+    appId = appRes.body.pkg.id
+  })
+
   afterEach(function() {
     return this.migration.purge()
   })
 
   it('should not create a user; missing username', async function() {
-    const {orgId, appId} = await createOrgAndApp()
 
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        email: 'testuser1@mail.com',
-        password : 'foo88'
-      })
+    const res = await testApi.create(orgId, appId, {
+      email: 'testuser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    expect(res.body.err.code).to.equal(codes.MISSING_USERNAME)
+    expect(res.body.err.code).to.equal("USERNAME_MISSING")
 
   })
 
-  it('should not create a user; missing email', async function() {
-    const {orgId, appId} = await createOrgAndApp()
+  it('should not create a user; invalid username', async function() {
 
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        username: 'fpp',
-        password : 'foo88'
-      })
+    const res = await testApi.create(orgId, appId, {
+      username: { what: 'weird' },
+      email: 'testuser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    expect(res.body.err.code).to.equal(codes.MISSING_EMAIL)
-
-  })
-
-  it('should not create a user; missing password', async function() {
-    const {orgId, appId} = await createOrgAndApp()
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        username: 'woober',
-        email: 'woo@gfoo.com'
-      })
-
-    expect(res.body.err.code).to.equal(codes.MISSING_PASSWORD)
-
-  })
-
-  it.skip('should not create a user; missing organization', async function() {
-    const {orgId, appId} = await createOrgAndApp()
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        password: 'pumpitup',
-        username: 'woober',
-        email: 'woo@gfoo.com'
-      })
-
-    expect(res.body.err.code).to.equal(codes.MISSING_ORGANIZATIONID)
+    expect(res.body.err.code).to.equal("USERNAME_INVALID")
 
   })
 
   it('should not create a user; duplicate username', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
-
-    var pkg1 = {
-      organizationId: orgId,
+    const res1 = await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var pkg2 = {
-      organizationId: orgId,
+    const res2 = await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser2@mail.com',
-      password : 'foo88'
-    }
-
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg1)
-
-    var res2 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg2)
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
     expect(res2.body.status).to.equal(400)
-    expect(res2.body.err.code).to.equal(codes.DUPLICATE_USERNAME)
+    expect(res2.body.err.code).to.equal("USERNAME_DUPLICATE")
 
   })
 
   it('should not create a user; duplicate username (case)', async function() {
-    const {orgId, appId} = await createOrgAndApp()
-    var pkg1 = {
-      organizationId: orgId,
+
+    const res1 = await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var pkg2 = {
-      organizationId: orgId,
-      username: 'Testuser1',
+    const res2 = await testApi.create(orgId, appId, {
+      username: 'TestUser1',
       email: 'testuser2@mail.com',
-      password : 'foo88'
-    }
-
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg1)
-
-    var res2 = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg2)
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
     expect(res2.body.status).to.equal(400)
-    expect(res2.body.err.code).to.equal(codes.DUPLICATE_USERNAME)
+    expect(res2.body.err.code).to.equal("USERNAME_DUPLICATE")
+
+  })
+
+  it('should not create a user; missing email', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'fpp',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+
+    expect(res.body.err.code).to.equal("EMAIL_MISSING")
+
+  })
+
+  it('should not create a user; invalid email', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'fpp',
+      email: { what: 'weird' },
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+
+    expect(res.body.err.code).to.equal("EMAIL_INVALID")
 
   })
 
   it('should not create a user; duplicate email', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
-
-    var pkg1 = {
-      organizationId: orgId,
+    const res1 = await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var pkg2 = {
-      organizationId: orgId,
+    const res2 = await testApi.create(orgId, appId, {
       username: 'testuser2',
       email: 'testuser1@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg1)
-
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg2)
-
-    expect(res.body.status).to.equal(400)
-    expect(res.body.err.code).to.equal(codes.DUPLICATE_EMAIL)
+    expect(res2.body.status).to.equal(400)
+    expect(res2.body.err.code).to.equal("EMAIL_DUPLICATE")
 
   })
 
   it('should not create a user; duplicate email (case)', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
-
-    var pkg1 = {
-      organizationId: orgId,
+    const res1 = await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var pkg2 = {
-      organizationId: orgId,
+    const res2 = await testApi.create(orgId, appId, {
       username: 'testuser2',
-      email: 'Testuser1@mail.com',
-      password : 'foo88'
-    }
+      email: 'TestUser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg1)
+    expect(res2.body.status).to.equal(400)
+    expect(res2.body.err.code).to.equal("EMAIL_DUPLICATE")
 
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg2)
+  })
 
-    expect(res.body.status).to.equal(400)
-    expect(res.body.err.code).to.equal(codes.DUPLICATE_EMAIL)
+  it('should not create a user; missing password', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York'
+    })
+
+    expect(res.body.err.code).to.equal("PASSWORD_MISSING")
+
+  })
+
+  it('should not create a user; invalid password', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+        username: 'woober',
+        password: { what: 'weird' },
+        email: 'woo@gfoo.com',
+        timezone: 'America/New_York'
+      })
+
+    expect(res.body.err.code).to.equal("PASSWORD_INVALID")
+
+  })
+
+  it('should not create a user; missing timezone', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com'
+    })
+
+    expect(res.body.err.code).to.equal("TIMEZONE_MISSING")
+
+  })
+
+  it('should not create a user; invalid timezone', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'Not/A_Real_Place'
+    })
+
+    expect(res.body.err.code).to.equal("TIMEZONE_INVALID")
+
+  })
+
+  it('should not create a user; invalid bio', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York',
+      bio: [],
+    })
+
+    expect(res.body.err.code).to.equal("BIO_INVALID")
+
+  })
+
+  it('should not create a user; invalid facebookUrl', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York',
+      facebookUrl: [],
+    })
+
+    expect(res.body.err.code).to.equal("FACEBOOKURL_INVALID")
+
+  })
+
+  it('should not create a user; invalid twitterUrl', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York',
+      twitterUrl: [],
+    })
+
+    expect(res.body.err.code).to.equal("TWITTERURL_INVALID")
+
+  })
+
+  it('should not create a user; invalid first name', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York',
+      firstName: [],
+    })
+
+    expect(res.body.err.code).to.equal("FIRSTNAME_INVALID")
+
+  })
+
+  it('should not create a user; invalid last name', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York',
+      lastName: [],
+    })
+
+    expect(res.body.err.code).to.equal("LASTNAME_INVALID")
+
+  })
+
+  it('should not create a user; invalid image ID', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York',
+      imageId: [],
+    })
+
+    expect(res.body.err.code).to.equal("IMAGEID_INVALID")
+
+  })
+
+  it('should not create a user; invalid roles', async function() {
+
+    const res = await testApi.create(orgId, appId, {
+      username: 'woober',
+      password: 'foo88',
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York',
+      roles: 'myrole',
+    })
+
+    expect(res.body.err.code).to.equal("ROLES_INVALID")
 
   })
 
   it('should create a user', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
-
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        username: 'testuser1',
-        email: 'testuser1@mail.com',
-        password : 'foo88'
-      })
+    const res = await testApi.create(orgId, appId, {
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York',
+      bio: 'Extreme pumpkin farmer',
+      facebookUrl: 'www.facebook.com/besturl',
+      twitterUrl: 'www.twitter.com/besturl',
+      firstName: 'Pumpkin',
+      lastName: 'Joe',
+      roles: ['role1', 'role2']
+    })
 
     expect(res.body.pkg.username).to.equal('testuser1')
     expect(res.body.pkg.email).to.equal('testuser1@mail.com')
+    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
+    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(res.body.pkg.firstName).to.equal('Pumpkin')
+    expect(res.body.pkg.lastName).to.equal('Joe')
+    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
     expect(res.body.status).to.equal(201)
 
   })
 
-  it.skip('should create a ghost user', async function() {
+  it('should create a user (case)', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
+    const res = await testApi.create(orgId, appId, {
+      username: 'TestUser1',
+      email: 'TestUser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York',
+      bio: 'Extreme pumpkin farmer',
+      facebookUrl: 'www.facebook.com/besturl',
+      twitterUrl: 'www.twitter.com/besturl',
+      firstName: 'Pumpkin',
+      lastName: 'Joe',
+      roles: ['ROLE1', 'ROLE2']
+    })
+
+    expect(res.body.pkg.username).to.equal('testuser1')
+    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
+    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
+    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(res.body.pkg.firstName).to.equal('Pumpkin')
+    expect(res.body.pkg.lastName).to.equal('Joe')
+    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
+    expect(res.body.status).to.equal(201)
+
+  })
+
+  it('should create a ghost user', async function() {
+
     process.env.USER_REGISTRATION = 'loose'
 
-    var res = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        firstName: 'Charlie'
-      })
+    const looseServer =  new MockHTTPServer()
+    const looseTestApi = new TestAPI(looseServer)
+
+    const res = await looseTestApi.create(orgId, appId, {
+      firstName: 'Charlie'
+    })
 
     expect(res.body.pkg.firstName).to.equal('Charlie')
     expect(res.body.status).to.equal(201)
@@ -312,346 +404,455 @@ describe('Routes', function() {
 
   })
 
-  it('should get a user by Id', async function() {
+  it('should get a user by ID', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
+    const userRes = await testApi.create(orgId, appId, {
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+    const userId = userRes.body.pkg.id
 
-    var pkg = {
-      organizationId: orgId,
-      username: 'testuser2',
-      email: 'testuser2@mail.com',
-      password : 'foo88'
-    }
+    const res = await testApi.get(orgId, appId, userId)
 
-    var users = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
-
-    var userId = users.body.pkg.id
-
-    var res = await new MockHTTPServer()
-      .get(`/api/${process.env.API_VERSION}/users/${userId}`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-
-    expect(res.body.pkg.username).to.equal('testuser2')
-    expect(res.body.pkg.email).to.equal('testuser2@mail.com')
+    expect(res.body.pkg.username).to.equal('testuser1')
+    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
     expect(res.body.status).to.equal(200)
 
   })
 
   it('should get a user by email', async function() {
-    const {orgId, appId} = await createOrgAndApp()
 
-    var pkg = {
-      organizationId: orgId,
-      username: 'testuser2',
-      email: 'testuser2@mail.com',
-      password : 'foo88'
-    }
+    const userRes = await testApi.create(orgId, appId, {
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+    const userEmail = userRes.body.pkg.email
 
-    var users = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
-    //console.error('users.error', users.error)
-    var userId = users.body.pkg.id
+    const res = await testApi.getByEmail(orgId, appId, userEmail)
 
-    var res = await new MockHTTPServer()
-      .get(`/api/${process.env.API_VERSION}/users/email/testuser2@mail.com`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-
-    expect(res.body.pkg.username).to.equal('testuser2')
-    expect(res.body.pkg.email).to.equal('testuser2@mail.com')
+    expect(res.body.pkg.username).to.equal('testuser1')
+    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
     expect(res.body.status).to.equal(200)
 
   })
 
   it('should get a user by username', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
+    const userRes = await testApi.create(orgId, appId, {
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+    const username = userRes.body.pkg.username
 
-    var pkg = {
-      organizationId: orgId,
-      username: 'testuser2',
-      email: 'testuser2@mail.com',
-      password : 'foo88'
-    }
+    const res = await testApi.getByUsername(orgId, appId, username)
 
-    var users = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
-
-    var userId = users.body.pkg.id
-
-    var res = await new MockHTTPServer()
-      .get(`/api/${process.env.API_VERSION}/users/username/testuser2`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-
-    expect(res.body.pkg.username).to.equal('testuser2')
-    expect(res.body.pkg.email).to.equal('testuser2@mail.com')
+    expect(res.body.pkg.username).to.equal('testuser1')
+    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
     expect(res.body.status).to.equal(200)
 
   })
 
   it('should get all users', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
+    await testApi.create(orgId, appId, {
+      username: 'testuser1',
+      email: 'testuser1@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var pkg = {
-      organizationId: orgId,
-      username: 'testuser3',
-      email: 'testuser@mail.com',
-      password : 'foo88'
-    }
+    await testApi.create(orgId, appId, {
+      username: 'testuser2',
+      email: 'testuser2@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var users = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
+    const usersRes = await testApi.getAll(orgId, appId)
 
-    var res = await new MockHTTPServer()
-      .get(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-
-    expect(res.body.pkg.users.length).to.be.above(0)
-    expect(res.body.status).to.equal(200)
+    expect(usersRes.body.pkg.users.length).to.equal(2)
+    expect(usersRes.body.pkg.users[0].username).to.equal('testuser1')
+    expect(usersRes.body.pkg.users[1].username).to.equal('testuser2')
+    expect(usersRes.body.status).to.equal(200)
 
   })
 
-  it('should update a user by Id', async function() {
+  describe('should not update a user', async function() {
+    let userId
 
-    const {orgId, appId} = await createOrgAndApp()
+    beforeEach(async function() {
+      const userRes = await testApi.create(orgId, appId, {
+        username: 'testuser1',
+        email: 'testuser1@mail.com',
+        password: 'foo88',
+        timezone: 'America/New_York'
+      })
+      userId = userRes.body.pkg.id
+    })
 
-    const pkg = {
-      organizationId: orgId,
+    it('invalid username', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        username: { what: 'weird' },
+      })
+
+      expect(res.body.err.code).to.equal("USERNAME_INVALID")
+
+    })
+
+    it('duplicate username', async function() {
+
+      const res1 = await testApi.create(orgId, appId, {
+        username: 'testuser2',
+        email: 'testuser2@mail.com',
+        password: 'foo88',
+        timezone: 'America/New_York'
+      })
+
+      const res2 = await testApi.update(orgId, appId, userId, {
+        username: 'testuser2',
+      })
+
+      expect(res2.body.status).to.equal(400)
+      expect(res2.body.err.code).to.equal("USERNAME_DUPLICATE")
+
+    })
+
+    it('duplicate username (case)', async function() {
+
+      const res1 = await testApi.create(orgId, appId, {
+        username: 'testuser2',
+        email: 'testuser2@mail.com',
+        password: 'foo88',
+        timezone: 'America/New_York'
+      })
+
+      const res2 = await testApi.update(orgId, appId, userId, {
+        username: 'TestUser2',
+      })
+
+      expect(res2.body.status).to.equal(400)
+      expect(res2.body.err.code).to.equal("USERNAME_DUPLICATE")
+
+    })
+
+    it('invalid email', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        email: { what: 'weird' }
+      })
+
+      expect(res.body.err.code).to.equal("EMAIL_INVALID")
+
+    })
+
+    it('duplicate email', async function() {
+
+      const res1 = await testApi.create(orgId, appId, {
+        username: 'testuser2',
+        email: 'testuser2@mail.com',
+        password: 'foo88',
+        timezone: 'America/New_York'
+      })
+
+      const res2 = await testApi.update(orgId, appId, userId, {
+        email: 'testuser2@mail.com'
+      })
+
+      expect(res2.body.status).to.equal(400)
+      expect(res2.body.err.code).to.equal("EMAIL_DUPLICATE")
+
+    })
+
+    it('duplicate email (case)', async function() {
+
+      const res1 = await testApi.create(orgId, appId, {
+        username: 'testuser2',
+        email: 'testuser2@mail.com',
+        password: 'foo88',
+        timezone: 'America/New_York'
+      })
+
+      const res2 = await testApi.update(orgId, appId, userId, {
+        email: 'TestUser2@mail.com'
+      })
+
+      expect(res2.body.status).to.equal(400)
+      expect(res2.body.err.code).to.equal("EMAIL_DUPLICATE")
+
+    })
+
+    it('invalid password', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+          password: { what: 'weird' },
+        })
+
+      expect(res.body.err.code).to.equal("PASSWORD_INVALID")
+
+    })
+
+    it('invalid timezone', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        timezone: 'Not/A_Real_Place'
+      })
+
+      expect(res.body.err.code).to.equal("TIMEZONE_INVALID")
+
+    })
+
+    it('invalid bio', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        bio: [],
+      })
+
+      expect(res.body.err.code).to.equal("BIO_INVALID")
+
+    })
+
+    it('invalid facebookUrl', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        facebookUrl: [],
+      })
+
+      expect(res.body.err.code).to.equal("FACEBOOKURL_INVALID")
+
+    })
+
+    it('invalid twitterUrl', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        twitterUrl: [],
+      })
+
+      expect(res.body.err.code).to.equal("TWITTERURL_INVALID")
+
+    })
+
+    it('invalid first name', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        firstName: [],
+      })
+
+      expect(res.body.err.code).to.equal("FIRSTNAME_INVALID")
+
+    })
+
+    it('invalid last name', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        lastName: [],
+      })
+
+      expect(res.body.err.code).to.equal("LASTNAME_INVALID")
+
+    })
+
+    it('invalid image ID', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        imageId: [],
+      })
+
+      expect(res.body.err.code).to.equal("IMAGEID_INVALID")
+
+    })
+
+    it('invalid roles', async function() {
+
+      const res = await testApi.update(orgId, appId, userId, {
+        roles: 'myrole',
+      })
+
+      expect(res.body.err.code).to.equal("ROLES_INVALID")
+
+    })
+
+  })
+
+  it('should update a user by ID', async function() {
+
+    const userRes = await testApi.create(orgId, appId, {
       username: 'testuser4',
       email: 'testuser@mail.com',
-      password : 'foo88'
-    }
-
-    const user = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
-
-    const usersId = user.body.pkg.id
-
-    const res = await updateAndGetUserById(orgId, appId, usersId, {
-      username: 'updateduser4'
+      password: 'foo88',
+      timezone: 'America/New_York',
     })
+    const userId = userRes.body.pkg.id
+
+    await testApi.update(orgId, appId, userId, {
+      username: 'updateduser4',
+      email: 'updateuser@email.com',
+      timezone: 'America/Denver',
+      bio: 'Extreme pumpkin farmer',
+      facebookUrl: 'www.facebook.com/besturl',
+      twitterUrl: 'www.twitter.com/besturl',
+      firstName: 'Pumpkin',
+      lastName: 'Joe',
+      roles: ['role1', 'role2']
+    })
+
+    const res = await testApi.get(orgId, appId, userId)
+
     expect(res.body.pkg.username).to.equal('updateduser4')
+    expect(res.body.pkg.email).to.equal('updateuser@email.com')
+    expect(res.body.pkg.timezone).to.equal('America/Denver')
+    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
+    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(res.body.pkg.firstName).to.equal('Pumpkin')
+    expect(res.body.pkg.lastName).to.equal('Joe')
+    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
+
+  })
+
+  it('should update a user by ID (case)', async function() {
+
+    const userRes = await testApi.create(orgId, appId, {
+      username: 'testuser4',
+      email: 'testuser@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York',
+    })
+    const userId = userRes.body.pkg.id
+
+    await testApi.update(orgId, appId, userId, {
+      username: 'UpdatedUser4',
+      email: 'UpdateUser@email.com',
+      timezone: 'America/Denver',
+      bio: 'Extreme pumpkin farmer',
+      facebookUrl: 'www.facebook.com/besturl',
+      twitterUrl: 'www.twitter.com/besturl',
+      firstName: 'Pumpkin',
+      lastName: 'Joe',
+      roles: ['ROLE1', 'ROLE2']
+    })
+
+    const res = await testApi.get(orgId, appId, userId)
+
+    expect(res.body.pkg.username).to.equal('updateduser4')
+    expect(res.body.pkg.email).to.equal('updateuser@email.com')
+    expect(res.body.pkg.timezone).to.equal('America/Denver')
+    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
+    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(res.body.pkg.firstName).to.equal('Pumpkin')
+    expect(res.body.pkg.lastName).to.equal('Joe')
+    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
 
   })
 
   it('should update a users organizations', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
-
-    const pkg = {
-      organizationId: orgId,
+    const userRes = await testApi.create(orgId, appId, {
       username: 'testuser4',
       email: 'testuser@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+    const userId = userRes.body.pkg.id
 
-    const user = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
-
-    const usersId = user.body.pkg.id
-
-    const res = await updateAndGetUserById(orgId, appId, usersId, {
+    const res = await testApi.update(orgId, appId, userId, {
       organizationIds: [orgId]
     })
     expect(res.body.pkg.organizationIds).to.eql([orgId])
 
-    const res2 = await updateAndGetUserById(orgId, appId, usersId, {
+    const res2 = await testApi.update(orgId, appId, userId, {
       organizationIds: []
     })
     expect(res2.body.pkg.organizationIds).to.eql([])
 
   })
 
-  it('should delete a user by Id', async function() {
+  it('should delete a user by ID', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
-
-    var pkg = {
-      organizationId: orgId,
+    const userRes = await testApi.create(orgId, appId, {
       username: 'testuser4',
       email: 'testuser@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+    const userId = userRes.body.pkg.id
 
-    var user = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
+    await testApi.delete(orgId, appId, userId)
 
-    var usersId = user.body.pkg.id
+    const res = await testApi.get(orgId, appId, userId)
 
-    var res = await new MockHTTPServer()
-      .delete(`/api/${process.env.API_VERSION}/users/${usersId}`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-
-    var res2 = await new MockHTTPServer()
-      .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-
-    expect(res2.body.pkg.status).to.equal('deleted')
-
-  })
-
-  it.skip('should update a user by username', async function() {
-
-    const {orgId, appId} = await createOrgAndApp()
-
-    var pkg = {
-      organizationId: org.id,
-      username: 'testuser4',
-      email: 'testuser@mail.com',
-      password : 'foo88'
-    }
-
-    var user = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
-
-    var usersId = user.body.pkg.id
-
-    var res = await new MockHTTPServer()
-      .patch(`/api/${process.env.API_VERSION}/users/${usersId}`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        username: 'updateduser4'
-      })
-
-    var res2 = await new MockHTTPServer()
-      .get(`/api/${process.env.API_VERSION}/users/${usersId}`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-
-    expect(res2.body.pkg.username).to.equal('updateduser4')
-    expect(res.body.status).to.equal(200)
+    expect(res.body.pkg.status).to.equal('deleted')
 
   })
 
   it('should check existence of key value pair', async function() {
 
-    const {orgId, appId} = await createOrgAndApp()
-
-    var pkg = {
-      organizationId: orgId,
+    const userRes = await testApi.create(orgId, appId, {
       username: 'testuser4',
       email: 'testuser@mail.com',
-      password : 'foo88'
-    }
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
+    const username = userRes.body.pkg.username
 
-    var userRes = await new MockHTTPServer()
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send(pkg)
+    const res1 = await testApi.existence(orgId, appId, 'username', 'testuser4')
 
-    var user = userRes.body.pkg
+    const res2 = await testApi.existence(orgId, appId, 'email', 'johnny@brown.com')
 
-    var res = await Promise
-      .all([
-        new MockHTTPServer()
-          .get(`/api/${process.env.API_VERSION}/users/existence/username/${user.username}`)
-          .set('organizationid',orgId)
-          .set('applicationid',appId)
-          ,
-        new MockHTTPServer()
-          .get(`/api/${process.env.API_VERSION}/users/existence/email/johnny@brown.com`)
-          .set('organizationid',orgId)
-          .set('applicationid',appId)
-      ])
-
-    expect(res[0].body.pkg.exists).to.equal(true)
-    expect(res[1].body.pkg.exists).to.equal(false)
+    expect(res1.body.pkg.exists).to.equal(true)
+    expect(res2.body.pkg.exists).to.equal(false)
 
   })
 
-  it('should delete user references when user is deleted', async function() {
+  it('should delete user references when user is destroyed', async function() {
 
-    const server = new MockHTTPServer()
-
-    const {orgId, appId} = await createOrgAndApp()
-
-    var res1 = await server
+    const res1 = await server
       .post(`/api/${process.env.API_VERSION}/groups`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
+      .set('organizationid', orgId)
+      .set('applicationid', appId)
       .send({
         title: 'work it out 1'
       })
 
     const group = res1.body.pkg
 
-    var userRes1 = await server
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        groupId: group.id,
-        username: 'testuser5',
-        email: 'testuser@mail.com',
-        password : 'foo88'
-      })
+    const userRes1 = await testApi.create(orgId, appId, {
+      organizationId: orgId,
+      groupId: group.id,
+      username: 'testuser5',
+      email: 'testuser@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var userRes2 = await server
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        groupId: group.id,
-        username: 'testuser6',
-        email: 'testuser7@mail.com',
-        password : 'foo88'
-      })
+    const userRes2 = await testApi.create(orgId, appId, {
+      organizationId: orgId,
+      groupId: group.id,
+      username: 'testuser6',
+      email: 'testuser7@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
     const user1 = userRes1.body.pkg
     const user2 = userRes2.body.pkg
 
-    var deleteRes = await server
-      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/destroy`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send()
+    await testApi.destroy(orgId, appId, user1.id)
 
     const results1 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        orgTestApi.getOrganizationsOfUser(user1.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`)
         .set('organizationid',orgId)
         .set('applicationid',appId),
-        server.get(`/api/${process.env.API_VERSION}/users`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId)
+        testApi.getAll(orgId, appId)
       ])
 
     const orgs1 = results1[0].body.pkg.organizations
@@ -662,15 +863,11 @@ describe('Routes', function() {
 
     const results2 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        orgTestApi.getOrganizationsOfUser(user2.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`)
         .set('organizationid',orgId)
         .set('applicationid',appId),
-        server.get(`/api/${process.env.API_VERSION}/users`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId)
+        testApi.getAll(orgId, appId)
       ])
 
     const orgs2 = results2[0].body.pkg.organizations
@@ -683,15 +880,9 @@ describe('Routes', function() {
 
   })
 
-  it('should delete user references when user is destroyed', async function() {
+  it('should delete user references when user is deleted', async function() {
 
-    const server = new MockHTTPServer()
-
-
-    const {orgId, appId} = await createOrgAndApp()
-
-
-    var res1 = await server
+    const res1 = await server
       .post(`/api/${process.env.API_VERSION}/groups`)
       .set('organizationid',orgId)
       .set('applicationid',appId)
@@ -707,50 +898,36 @@ describe('Routes', function() {
         title: 'work it out 2'
       })
 
-    var userRes1 = await server
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        groupId: group.id,
-        username: 'testuser5',
-        email: 'testuser@mail.com',
-        password : 'foo88'
-      })
+    const userRes1 = await testApi.create(orgId, appId, {
+      organizationId: orgId,
+      groupId: group.id,
+      username: 'testuser5',
+      email: 'testuser@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
-    var userRes2 = await server
-      .post(`/api/${process.env.API_VERSION}/users`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send({
-        organizationId: orgId,
-        groupId: group.id,
-        username: 'testuser6',
-        email: 'testuser7@mail.com',
-        password : 'foo88'
-      })
+    const userRes2 = await testApi.create(orgId, appId, {
+      organizationId: orgId,
+      groupId: group.id,
+      username: 'testuser6',
+      email: 'testuser7@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York'
+    })
 
     const user1 = userRes1.body.pkg
     const user2 = userRes2.body.pkg
 
-    var deleteRes = await server
-      .delete(`/api/${process.env.API_VERSION}/users/${user1.id}/destroy`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
-      .send()
+    await testApi.delete(orgId, appId, user1.id)
 
     const results1 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user1.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        orgTestApi.getOrganizationsOfUser(user1.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`)
         .set('organizationid',orgId)
         .set('applicationid',appId),
-        server.get(`/api/${process.env.API_VERSION}/users`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId)
+        testApi.getAll(orgId, appId)
       ])
 
     const orgs1 = results1[0].body.pkg.organizations
@@ -761,15 +938,11 @@ describe('Routes', function() {
 
     const results2 = await Promise
       .all([
-        server.get(`/api/${process.env.API_VERSION}/organizations/of/users/${user2.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        orgTestApi.getOrganizationsOfUser(user2.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`)
         .set('organizationid',orgId)
         .set('applicationid',appId),
-        server.get(`/api/${process.env.API_VERSION}/users`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId)
+        testApi.getAll(orgId, appId)
       ])
 
     const orgs2 = results2[0].body.pkg.organizations
