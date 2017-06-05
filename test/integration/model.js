@@ -7,7 +7,7 @@ import UserModel from '../../src/models/user'
 const OrganizationModel = organizationResources.models.Organization
 
 /** @test {UserModel} */
-describe.skip('Model', function() {
+describe('Model', function() {
 
   beforeEach(function() {
 
@@ -176,7 +176,7 @@ describe.skip('Model', function() {
   })
 
   /** @test {UserModel#update} */
-  it('should update a user', async function() {
+  it.only('should update a user', async function() {
 
     var user = new UserModel()
 
@@ -196,6 +196,30 @@ describe.skip('Model', function() {
     expect(res2.lastName).to.equal('Talkington')
     expect(res2.username).to.equal('ted3talks2000')
     expect(res2.email).to.equal('ted33@email.com')
+
+  })
+
+  /** @test {UserModel#update} */
+  it.only('should not update a user; invalid first name', async function() {
+
+    var user = new UserModel()
+
+    var res = await user.create({
+      username: 'ted3talks2000',
+      email: 'ted3@email.com',
+      password: 'foo88'
+    })
+
+    try {
+      var res2 = await user.updateById(res.id, {
+        firstName: 1,
+        lastName: 'Talkington',
+        email: 'ted33@email.com'
+      })
+    } catch (err) {
+      expect(err.errors[0].dataPath).to.equal('.firstName')
+      expect(err.errors[0].message).to.equal('should be string')
+    }
 
   })
 

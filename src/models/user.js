@@ -2,6 +2,57 @@ import codes from '../lib/error-codes'
 import {DigitalAssetModel} from 'structure-digital-assets'
 import r from 'structure-driver'
 import RootModel from 'structure-root-model'
+import Ajv from 'ajv'
+
+const ajv = new Ajv()
+const schema = ajv.compile({
+  "$async": true,
+  "properties": {
+    "email": {
+      "duplicate_email": true,
+      "lowercase": true,
+      "format": "email",
+      "type": "string",
+    },
+    "password": {
+      "type": "string"
+    },
+    "username": {
+      "duplicate_username": true,
+      "lowercase": true,
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string",
+      "timezone": true,
+    },
+    "bio": {
+      "type": "string"
+    },
+    "facebookUrl": {
+      "type": "string"
+    },
+    "twitterUrl": {
+      "type": "string"
+    },
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "imageId": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "lowercase": true,
+        "type": "string"
+      }
+    },
+  }
+})
 
 /**
  * UserModel Class
@@ -21,6 +72,7 @@ export default class UserModel extends RootModel {
   constructor(options = {}) {
     super(Object.assign({}, {
       table: 'users',
+      schema: schema,
 
       relations: {
         hasMany: [
