@@ -1,10 +1,7 @@
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
-import RootController from 'structure-root-controller'
-import RootModel from 'structure-root-model'
 import UserController from '../../src/controllers/user'
-import UserModel from '../../src/models/user'
 import {OrganizationModel} from 'structure-organizations'
 import {ApplicationModel} from 'structure-applications'
 
@@ -33,8 +30,8 @@ describe('Controller', function() {
   /** @test {UserController#create} */
   it.skip('should create an user', async function() {
 
-    var user = new UserController(),
-    organization = new OrganizationController()
+    var user = new UserController()
+    var organization = new OrganizationController()
 
     var req0 = {
       body: {
@@ -107,7 +104,7 @@ describe('Controller', function() {
       }
     }
 
-    var res = await user.create(req)
+    await user.create(req)
 
     var res2 = await user.getAll()
 
@@ -120,7 +117,7 @@ describe('Controller', function() {
 
     var user = new UserController()
 
-    var req = {
+    var req1 = {
       body: {
         username: 'ted1talks3003',
         email: 'ted13@email.com',
@@ -128,9 +125,9 @@ describe('Controller', function() {
       }
     }
 
-    var res = await user.create(req)
+    var res = await user.create(req1)
 
-    var req = {
+    var req2 = {
       body: {
         username: 'ted1talks3004',
         email: 'ted14@email.com',
@@ -140,7 +137,7 @@ describe('Controller', function() {
       }
     }
 
-    var res2 = await user.updateById(req)
+    var res2 = await user.updateById(req2)
 
     expect(res2.username).to.equal('ted1talks3004')
     expect(res2.email).to.equal('ted14@email.com')
@@ -154,13 +151,13 @@ describe('Controller', function() {
 
     const organizationModel = new OrganizationModel()
     const organization = await organizationModel.create({
-      desc:'cool organization',
-      title:'My organization'
+      desc: 'cool organization',
+      title: 'My organization'
     })
     const organizationId = organization.id
     const organization2 = await organizationModel.create({
-      desc:'cool organization2',
-      title:'My organization2'
+      desc: 'cool organization2',
+      title: 'My organization2'
     })
     const organizationId2 = organization2.id
 

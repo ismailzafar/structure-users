@@ -22,14 +22,14 @@ process.on('unhandledRejection', function(err) {
 // compile test suites from dependencies so we can import their test APIs
 require("babel-core/register")({
   ignore: /node_modules\/(?!structure-\S+\/test)/
-});
+})
 
 var path = require('path')
 require('dotenv').config({path: path.join(__dirname, '../.env')})
 
-var chai  = require('chai'),
-    sinon = require('sinon'),
-    sinonChai = require('sinon-chai')
+var chai  = require('chai')
+var sinon = require('sinon')
+var sinonChai = require('sinon-chai')
 
 chai.use(sinonChai)
 

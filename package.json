@@ -27,6 +27,7 @@
     "chai": "^3.5.0",
     "dotenv": "^4.0.0",
     "eslint": "^3.16.1",
+    "eslint-config-structure": "0.0.1",
     "expect": "^1.20.2",
     "forever": "^0.15.3",
     "gulp": "^3.9.1",
@@ -47,6 +48,7 @@
   },
   "scripts": {
     "compile": "node_modules/.bin/babel src -d dist -D -s",
+    "eslint": "node_modules/.bin/eslint src test",
     "prepublish": "npm run compile",
     "start-reqlite": "node_modules/forever/bin/forever start node_modules/reqlite/lib/node.js --port-offset 1 -s",
     "stop-reqlite": "node_modules/forever/bin/forever stop node_modules/reqlite/lib/node.js --port-offset 1 -s",
