@@ -57,12 +57,14 @@ const keywords = {
     "type": "string",
     "compile": (sch, parentSchema) => {
 
-      return async function(data) {
+      return async function(data, dataPath, parentData, propertyName, rootData) {
 
         const res = await userModel.getByEmail(data.toLowerCase())
 
         // Failed, should not have duplicate email
-        if(res) return false
+        if(res && res.id !== rootData.params.id) {
+          return false
+        }
 
         return true
 
@@ -80,12 +82,14 @@ const keywords = {
     "type": 'string',
     "compile": function checkDuplicateUsername(sch, parentSchema) {
 
-      return async function(data) {
+      return async function(data, dataPath, parentData, propertyName, rootData) {
 
         const res = await userModel.getByUsername(data.toLowerCase())
 
         // Failed, should not have duplicate username
-        if(res) return false
+        if(res && res.id !== rootData.params.id) {
+          return false
+        }
 
         return true
 

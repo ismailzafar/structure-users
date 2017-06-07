@@ -687,7 +687,7 @@ describe('Routes', function() {
     })
     const userId = userRes.body.pkg.id
 
-    await testApi.update(orgId, appId, userId, {
+    const res1 = await testApi.update(orgId, appId, userId, {
       username: 'updateduser4',
       email: 'updateuser@email.com',
       timezone: 'America/Denver',
@@ -699,17 +699,45 @@ describe('Routes', function() {
       roles: ['role1', 'role2']
     })
 
-    const res = await testApi.get(orgId, appId, userId)
+    expect(res1.body.status).to.equal(200)
 
-    expect(res.body.pkg.username).to.equal('updateduser4')
-    expect(res.body.pkg.email).to.equal('updateuser@email.com')
-    expect(res.body.pkg.timezone).to.equal('America/Denver')
-    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
-    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
-    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
-    expect(res.body.pkg.firstName).to.equal('Pumpkin')
-    expect(res.body.pkg.lastName).to.equal('Joe')
-    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
+    const res2 = await testApi.get(orgId, appId, userId)
+
+    expect(res2.body.pkg.username).to.equal('updateduser4')
+    expect(res2.body.pkg.email).to.equal('updateuser@email.com')
+    expect(res2.body.pkg.timezone).to.equal('America/Denver')
+    expect(res2.body.pkg.bio).to.equal('Extreme pumpkin farmer')
+    expect(res2.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(res2.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(res2.body.pkg.firstName).to.equal('Pumpkin')
+    expect(res2.body.pkg.lastName).to.equal('Joe')
+    expect(res2.body.pkg.roles).to.deep.equal(['role1', 'role2'])
+    expect(res2.body.status).to.equal(200)
+
+  })
+
+  it('should not error if duplicate username or email is same user', async function() {
+
+    const userRes = await testApi.create(orgId, appId, {
+      username: 'testuser4',
+      email: 'testuser@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York',
+    })
+    const userId = userRes.body.pkg.id
+
+    const res1 = await testApi.update(orgId, appId, userId, {
+      username: 'testuser4',
+      email: 'testuser@mail.com',
+    })
+
+    expect(res1.body.status).to.equal(200)
+
+    const res2 = await testApi.get(orgId, appId, userId)
+
+    expect(res2.body.pkg.username).to.equal('testuser4')
+    expect(res2.body.pkg.email).to.equal('testuser@mail.com')
+    expect(res2.body.status).to.equal(200)
 
   })
 
@@ -723,7 +751,7 @@ describe('Routes', function() {
     })
     const userId = userRes.body.pkg.id
 
-    await testApi.update(orgId, appId, userId, {
+    const res1 = await testApi.update(orgId, appId, userId, {
       username: 'UpdatedUser4',
       email: 'UpdateUser@email.com',
       timezone: 'America/Denver',
@@ -735,17 +763,20 @@ describe('Routes', function() {
       roles: ['ROLE1', 'ROLE2']
     })
 
-    const res = await testApi.get(orgId, appId, userId)
+    expect(res1.body.status).to.equal(200)
 
-    expect(res.body.pkg.username).to.equal('updateduser4')
-    expect(res.body.pkg.email).to.equal('updateuser@email.com')
-    expect(res.body.pkg.timezone).to.equal('America/Denver')
-    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
-    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
-    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
-    expect(res.body.pkg.firstName).to.equal('Pumpkin')
-    expect(res.body.pkg.lastName).to.equal('Joe')
-    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
+    const res2 = await testApi.get(orgId, appId, userId)
+
+    expect(res2.body.pkg.username).to.equal('updateduser4')
+    expect(res2.body.pkg.email).to.equal('updateuser@email.com')
+    expect(res2.body.pkg.timezone).to.equal('America/Denver')
+    expect(res2.body.pkg.bio).to.equal('Extreme pumpkin farmer')
+    expect(res2.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(res2.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(res2.body.pkg.firstName).to.equal('Pumpkin')
+    expect(res2.body.pkg.lastName).to.equal('Joe')
+    expect(res2.body.pkg.roles).to.deep.equal(['role1', 'role2'])
+    expect(res2.body.status).to.equal(200)
 
   })
 
