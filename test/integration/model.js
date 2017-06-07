@@ -1,4 +1,4 @@
-import codes from '../../src/lib/error-codes'
+import r from 'structure-driver'
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
@@ -37,8 +37,8 @@ describe.skip('Model', function() {
   /** @test {UserModel#create} */
   it('should create a user', async function() {
 
-    var orgModel = new OrganizationModel(),
-        user     = new UserModel()
+    var orgModel = new OrganizationModel()
+    var user = new UserModel()
 
     const org = await orgModel.create({
       title: 'Kotton Kandy Klub'
@@ -88,7 +88,7 @@ describe.skip('Model', function() {
     var user = new UserModel({
     })
 
-    var res = await user.create({
+    await user.create({
       username: 'ted1talks2000',
       email: 'ted1@email.com',
       password: 'foo88'
@@ -125,7 +125,7 @@ describe.skip('Model', function() {
     var user = new UserModel({
     })
 
-    var res = await user.create({
+    await user.create({
       username: 'ted1talks2000',
       email: 'ted1@email.com',
       password: 'foo88'
@@ -163,15 +163,15 @@ describe.skip('Model', function() {
       name: 'root'
     })
 
-    var res = await user.create({
+    await user.create({
       username: 'ted2talks2000',
       email: 'ted2@email.com',
       password: 'foo88'
     })
 
-    var res2 = await user.getAll()
+    var res = await user.getAll()
 
-    expect(res2.length > 0).to.be.true
+    expect(res.length > 0).to.be.true
 
   })
 

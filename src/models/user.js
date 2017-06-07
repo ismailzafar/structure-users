@@ -93,11 +93,13 @@ export default class UserModel extends RootModel {
       pkg.status = 'active'
 
       try {
+
         var doc = await RootModel.prototype.create.call(this, pkg, options)
 
         resolve(doc)
-      }
-      catch(e) {
+
+      } catch(e) {
+
         this.logger.error('Error creating user', e)
 
         reject({
@@ -111,7 +113,6 @@ export default class UserModel extends RootModel {
 
   getAll(ids = [], options = {}) {
 
-    const da = new DigitalAssetModel()
     const status = ['active']
 
     return new Promise( async (resolve, reject) => {
@@ -131,13 +132,13 @@ export default class UserModel extends RootModel {
               return r.expr(status).contains(doc('status'))
             })
 
-        }
+        } else {
 
-        else {
           query = query.getAll(r.args(status), {index: 'status'})
+
         }
 
-        //query = query.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'}) <-- won't work as not evey user has an image :/
+        // query = query.eqJoin('imageId', this.r.table('digital_assets'), {index: 'id'}) <-- won't work as not evey user has an image :/
 
         const userRes = await query.run()
 
@@ -172,8 +173,8 @@ export default class UserModel extends RootModel {
 
         resolve(users)
 
-      }
-      catch(e) {
+      } catch(e) {
+
         this.logger.error('Error getAll users', e)
 
         reject(e)
@@ -201,8 +202,7 @@ export default class UserModel extends RootModel {
         if(user[0]) return resolve(user[0])
 
         resolve()
-      }
-      catch(e) {
+      } catch(e) {
         this.logger.error('Error getting user by email', {
           email,
           err: e
@@ -231,8 +231,8 @@ export default class UserModel extends RootModel {
 
         resolve(user)
 
-      }
-      catch(e) {
+      } catch(e) {
+
         this.logger.error('Error getting user by id', {
           id,
           err: e
@@ -263,8 +263,7 @@ export default class UserModel extends RootModel {
         if(user[0]) return resolve(user[0])
 
         resolve()
-      }
-      catch(e) {
+      } catch(e) {
         this.logger.error('Error getting user by username', {
           username,
           err: e
@@ -289,7 +288,7 @@ export default class UserModel extends RootModel {
   updateById(id, pkg = {}, options = {}) {
 
     if(pkg.password) {
-      logger.warn('User.update does not support property password; deleted.')
+      this.logger.warn('User.update does not support property password; deleted.')
 
       delete pkg.password
     }

@@ -1,10 +1,6 @@
-import UserModel from '../models/user'
-
-const userModel = new UserModel()
-
 function canUserEditProfile(props = {}, cb) {
 
-  const result = props.userId == props.profileUserId
+  const result = props.userId === props.profileUserId
 
   cb(null, result)
 

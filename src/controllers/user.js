@@ -1,6 +1,5 @@
 import codes from '../lib/error-codes'
 import {OrganizationModel, UserService} from 'structure-organizations'
-import PasswordService from 'structure-password-service'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
 
@@ -19,11 +18,11 @@ export default class UsersController extends RootController {
    * @constructor
    * @param {Object} options - Options
    */
-   constructor(options = {}) {
-     super(Object.assign({}, {
-       name: 'users'
-     }, options))
-   }
+  constructor(options = {}) {
+    super(Object.assign({}, {
+      name: 'users'
+    }, options))
+  }
 
    /**
     * Check existence of key value pair
@@ -32,55 +31,55 @@ export default class UsersController extends RootController {
     * @param {Object} req - Express req
     * @param {Object} res - Express res
     */
-   checkExistence(req, res) {
+  checkExistence(req, res) {
 
-     const applicationId = req.headers.applicationid
-     const organizationId = req.headers.organizationid
-     const userModel = new UserModel({
-       applicationId,
-       logger: this.logger,
-       organizationId
-     })
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+    const userModel = new UserModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
 
-     const blacklist = [
-       'hash',
-       'password'
-     ]
+    const blacklist = [
+      'hash',
+      'password'
+    ]
 
-     const key = req.params.key.toLowerCase()
-     const val = req.params.value.toLowerCase()
+    const key = req.params.key.toLowerCase()
+    const val = req.params.value.toLowerCase()
 
-     return new Promise( async (resolve, reject) => {
+    return new Promise( async (resolve, reject) => {
 
-       if(!key || blacklist.indexOf(key) > -1) return reject({
-         code: codes.INVALID_KEY
-       })
+      if(!key || blacklist.indexOf(key) > -1) return reject({
+        code: codes.INVALID_KEY
+      })
 
-       if(!val) return reject({
-         code: codes.INVALID_VALUE
-       })
+      if(!val) return reject({
+        code: codes.INVALID_VALUE
+      })
 
-       const filter = {}
-       filter[key] = val
+      const filter = {}
+      filter[key] = val
 
-       try {
-         const existence = await userModel.checkExistence(key, val)
+      try {
+        const existence = await userModel.checkExistence(key, val)
 
-         resolve(existence)
-       }
-       catch(e) {
+        resolve(existence)
 
-         reject({
-           code: codes.UNKNOWN,
-           message: e.message,
-           stack: e.stack
-         })
+      } catch(e) {
 
-       }
+        reject({
+          code: codes.UNKNOWN,
+          message: e.message,
+          stack: e.stack
+        })
 
-     })
+      }
 
-   }
+    })
+
+  }
 
   /**
    * Create new user
@@ -235,8 +234,8 @@ export default class UsersController extends RootController {
 
         resolve(user)
 
-      }
-      catch(e) {
+      } catch(e) {
+
         this.logger.error('Could not getById', e)
 
         reject(e)
@@ -298,20 +297,20 @@ export default class UsersController extends RootController {
       const existingOrganizations = userOrganizations.map(({id}) => id)
 
       const orgsToRemove = existingOrganizations.filter((i) => {
-        return pkg.organizationIds.indexOf(i) < 0;
+        return pkg.organizationIds.indexOf(i) < 0
       })
 
       const orgsToAdd = pkg.organizationIds.filter((i) => {
-        return existingOrganizations.indexOf(i) < 0;
+        return existingOrganizations.indexOf(i) < 0
       })
 
-      for (const organizationId of orgsToRemove) {
-        const userService = new UserService(organizationId, userId, this.logger)
+      for (const orgId of orgsToRemove) {
+        const userService = new UserService(orgId, userId, this.logger)
         await userService.removeUser()
       }
 
-      for (const organizationId of orgsToAdd) {
-        const userService = new UserService(organizationId, userId, this.logger)
+      for (const orgId of orgsToAdd) {
+        const userService = new UserService(orgId, userId, this.logger)
         await userService.addUser()
       }
     }

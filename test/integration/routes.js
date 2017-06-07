@@ -1,9 +1,6 @@
-import codes from '../../src/lib/error-codes'
 import Migrations from 'structure-migrations'
 import MockHTTPServer from '../helpers/mock-http-server'
 import pluginsList from '../helpers/plugins'
-import UserController from '../../src/controllers/user'
-import UserModel from '../../src/models/user'
 import TestAPI from '../helpers/test-api'
 import OrgTestAPI from 'structure-organizations/test/helpers/test-api'
 import AppTestAPI from 'structure-applications/test/helpers/test-api'
@@ -65,7 +62,7 @@ describe('Routes', function() {
   it('should not create a user; invalid username', async function() {
 
     const res = await testApi.create(orgId, appId, {
-      username: { what: 'weird' },
+      username: {what: 'weird'},
       email: 'testuser1@mail.com',
       password: 'foo88',
       timezone: 'America/New_York'
@@ -77,7 +74,7 @@ describe('Routes', function() {
 
   it('should not create a user; duplicate username', async function() {
 
-    const res1 = await testApi.create(orgId, appId, {
+    await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password: 'foo88',
@@ -98,7 +95,7 @@ describe('Routes', function() {
 
   it('should not create a user; duplicate username (case)', async function() {
 
-    const res1 = await testApi.create(orgId, appId, {
+    await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password: 'foo88',
@@ -133,7 +130,7 @@ describe('Routes', function() {
 
     const res = await testApi.create(orgId, appId, {
       username: 'fpp',
-      email: { what: 'weird' },
+      email: {what: 'weird'},
       password: 'foo88',
       timezone: 'America/New_York'
     })
@@ -144,7 +141,7 @@ describe('Routes', function() {
 
   it('should not create a user; duplicate email', async function() {
 
-    const res1 = await testApi.create(orgId, appId, {
+    await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password: 'foo88',
@@ -165,7 +162,7 @@ describe('Routes', function() {
 
   it('should not create a user; duplicate email (case)', async function() {
 
-    const res1 = await testApi.create(orgId, appId, {
+    await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
       password: 'foo88',
@@ -199,11 +196,11 @@ describe('Routes', function() {
   it('should not create a user; invalid password', async function() {
 
     const res = await testApi.create(orgId, appId, {
-        username: 'woober',
-        password: { what: 'weird' },
-        email: 'woo@gfoo.com',
-        timezone: 'America/New_York'
-      })
+      username: 'woober',
+      password: {what: 'weird'},
+      email: 'woo@gfoo.com',
+      timezone: 'America/New_York'
+    })
 
     expect(res.body.err.code).to.equal("PASSWORD_INVALID")
 
@@ -499,7 +496,7 @@ describe('Routes', function() {
     it('invalid username', async function() {
 
       const res = await testApi.update(orgId, appId, userId, {
-        username: { what: 'weird' },
+        username: {what: 'weird'},
       })
 
       expect(res.body.err.code).to.equal("USERNAME_INVALID")
@@ -508,7 +505,7 @@ describe('Routes', function() {
 
     it('duplicate username', async function() {
 
-      const res1 = await testApi.create(orgId, appId, {
+      await testApi.create(orgId, appId, {
         username: 'testuser2',
         email: 'testuser2@mail.com',
         password: 'foo88',
@@ -526,7 +523,7 @@ describe('Routes', function() {
 
     it('duplicate username (case)', async function() {
 
-      const res1 = await testApi.create(orgId, appId, {
+      await testApi.create(orgId, appId, {
         username: 'testuser2',
         email: 'testuser2@mail.com',
         password: 'foo88',
@@ -545,7 +542,7 @@ describe('Routes', function() {
     it('invalid email', async function() {
 
       const res = await testApi.update(orgId, appId, userId, {
-        email: { what: 'weird' }
+        email: {what: 'weird'}
       })
 
       expect(res.body.err.code).to.equal("EMAIL_INVALID")
@@ -554,7 +551,7 @@ describe('Routes', function() {
 
     it('duplicate email', async function() {
 
-      const res1 = await testApi.create(orgId, appId, {
+      await testApi.create(orgId, appId, {
         username: 'testuser2',
         email: 'testuser2@mail.com',
         password: 'foo88',
@@ -572,7 +569,7 @@ describe('Routes', function() {
 
     it('duplicate email (case)', async function() {
 
-      const res1 = await testApi.create(orgId, appId, {
+      await testApi.create(orgId, appId, {
         username: 'testuser2',
         email: 'testuser2@mail.com',
         password: 'foo88',
@@ -591,8 +588,8 @@ describe('Routes', function() {
     it('invalid password', async function() {
 
       const res = await testApi.update(orgId, appId, userId, {
-          password: { what: 'weird' },
-        })
+        password: {what: 'weird'},
+      })
 
       expect(res.body.err.code).to.equal("PASSWORD_INVALID")
 
@@ -794,13 +791,12 @@ describe('Routes', function() {
 
   it('should check existence of key value pair', async function() {
 
-    const userRes = await testApi.create(orgId, appId, {
+    await testApi.create(orgId, appId, {
       username: 'testuser4',
       email: 'testuser@mail.com',
       password: 'foo88',
       timezone: 'America/New_York'
     })
-    const username = userRes.body.pkg.username
 
     const res1 = await testApi.existence(orgId, appId, 'username', 'testuser4')
 
@@ -850,8 +846,8 @@ describe('Routes', function() {
       .all([
         orgTestApi.getOrganizationsOfUser(user1.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        .set('organizationid', orgId)
+        .set('applicationid', appId),
         testApi.getAll(orgId, appId)
       ])
 
@@ -865,8 +861,8 @@ describe('Routes', function() {
       .all([
         orgTestApi.getOrganizationsOfUser(user2.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        .set('organizationid', orgId)
+        .set('applicationid', appId),
         testApi.getAll(orgId, appId)
       ])
 
@@ -884,8 +880,8 @@ describe('Routes', function() {
 
     const res1 = await server
       .post(`/api/${process.env.API_VERSION}/groups`)
-      .set('organizationid',orgId)
-      .set('applicationid',appId)
+      .set('organizationid', orgId)
+      .set('applicationid', appId)
       .send({
         title: 'work it out 1'
       })
@@ -925,8 +921,8 @@ describe('Routes', function() {
       .all([
         orgTestApi.getOrganizationsOfUser(user1.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user1.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        .set('organizationid', orgId)
+        .set('applicationid', appId),
         testApi.getAll(orgId, appId)
       ])
 
@@ -940,8 +936,8 @@ describe('Routes', function() {
       .all([
         orgTestApi.getOrganizationsOfUser(user2.id),
         server.get(`/api/${process.env.API_VERSION}/groups/of/users/${user2.id}`)
-        .set('organizationid',orgId)
-        .set('applicationid',appId),
+        .set('organizationid', orgId)
+        .set('applicationid', appId),
         testApi.getAll(orgId, appId)
       ])
 
