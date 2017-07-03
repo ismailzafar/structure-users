@@ -16,7 +16,7 @@
     "structure-root-controller": "^0.1.3",
     "structure-root-model": "^0.1.11",
     "structure-token-service": "^0.1.0",
-    "structure-validation-schema-middleware": "^0.2.1"
+    "structure-validation-schema-middleware": "^0.3.0"
   },
   "devDependencies": {
     "babel-cli": "^6.23.0",
@@ -27,7 +27,7 @@
     "chai": "^3.5.0",
     "dotenv": "^4.0.0",
     "eslint": "^3.16.1",
-    "eslint-config-structure": "0.0.1",
+    "eslint-config-structure": "0.1.2",
     "expect": "^1.20.2",
     "forever": "^0.15.3",
     "gulp": "^3.9.1",
