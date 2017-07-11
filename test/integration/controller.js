@@ -1,11 +1,34 @@
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
-import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
+import {settings as organizationSettings} from 'structure-organizations'
 import UserController from '../../src/controllers/user'
 import {OrganizationModel} from 'structure-organizations'
 import {ApplicationModel} from 'structure-applications'
 
-const OrganizationController = organizationResources.controllers.Organization
+
+async function createOrg() {
+
+  const organizationModel = new OrganizationModel()
+
+  return await organizationModel.create({
+    desc: 'cool organization',
+    title: 'My organization'
+  })
+
+}
+
+async function createApp(orgId) {
+
+  const applicationModel = new ApplicationModel({
+    orgId
+  })
+
+  return await applicationModel.create({
+    desc: '',
+    title: 'My App'
+  })
+
+}
 
 /** @test {UserController} */
 describe('Controller', function() {
@@ -28,121 +51,140 @@ describe('Controller', function() {
   })
 
   /** @test {UserController#create} */
-  it.skip('should create an user', async function() {
+  it('should create an user', async function() {
 
-    var user = new UserController()
-    var organization = new OrganizationController()
+    const org = await createOrg()
+    const app = await createApp(org.id)
 
-    var req0 = {
-      body: {
-        title: 'My Organization'
-      }
-    }
+    const user = new UserController()
 
-    var org = await organization.create(req0)
-
-    var req = {
+    const res = await user.create({
       body: {
         username: 'ted1talks3000',
         email: 'ted10@email.com',
         password: 'foo88',
-        organizationId: org.id
+      },
+      headers: {
+        applicationid: app.id,
+        organizationid: org.id
       }
-    }
-
-    var res = await user.create(req)
+    })
 
     expect(res.username).to.equal('ted1talks3000')
     expect(res.email).to.equal('ted10@email.com')
     expect(res.password).to.be.undefined
-    expect(res.hash).to.be.a('string')
 
   })
 
 
   /** @test {UserController#getById} */
-  it.skip('should get by ID', async function() {
+  it('should get by ID', async function() {
 
-    var user = new UserController({
-    })
+    const org = await createOrg()
+    const app = await createApp(org.id)
 
-    var req = {
+    const user = new UserController()
+
+    const res = await user.create({
       body: {
         username: 'ted1talks3001',
         email: 'ted11@email.com',
-        password: 'foo88'
+        password: 'foo88',
+      },
+      headers: {
+        applicationid: app.id,
+        organizationid: org.id
       }
-    }
+    })
 
-    var res = await user.create(req)
-
-    var req2 = {
+    const req2 = {
       params: {
         id: res.id
+      },
+      headers: {
+        applicationid: app.id,
+        organizationid: org.id
       }
     }
 
-    var res2 = await user.getById(req2)
+    const res2 = await user.getById(req2)
 
     expect(res2.username).to.equal('ted1talks3001')
     expect(res2.email).to.equal('ted11@email.com')
     expect(res2.password).to.be.undefined
-    expect(res2.hash).to.be.a('string')
+
   })
 
   /** @test {UserModel#getAll} */
-  it.skip('should get all', async function() {
+  it('should get all', async function() {
 
-    var user = new UserController({
+    const org = await createOrg()
+    const app = await createApp(org.id)
+
+    const user = new UserController()
+
+    await user.create({
+      body: {
+        username: 'ted1talks3001',
+        email: 'ted11@email.com',
+        password: 'foo88',
+      },
+      headers: {
+        applicationid: app.id,
+        organizationid: org.id
+      }
     })
 
-    var req = {
-      body: {
-        username: 'ted1talks3002',
-        email: 'ted12@email.com',
-        password: 'foo88'
+    const res2 = await user.getAll({
+      headers: {
+        applicationid: app.id,
+        organizationid: org.id
       }
-    }
-
-    await user.create(req)
-
-    var res2 = await user.getAll()
+    })
 
     expect(res2.length > 0).to.be.true
 
   })
 
   /** @test {UserController#update} */
-  it.skip('should update a user', async function() {
+  it('should update a user', async function() {
 
-    var user = new UserController()
+    const org = await createOrg()
+    const app = await createApp(org.id)
 
-    var req1 = {
+    const user = new UserController()
+
+    const res = await user.create({
       body: {
         username: 'ted1talks3003',
         email: 'ted13@email.com',
         password: 'foo88'
+      },
+      headers: {
+        applicationid: app.id,
+        organizationid: org.id
       }
-    }
+    })
 
-    var res = await user.create(req1)
-
-    var req2 = {
+    const req2 = {
       body: {
         username: 'ted1talks3004',
         email: 'ted14@email.com',
       },
       params: {
         id: res.id
+      },
+      headers: {
+        applicationid: app.id,
+        organizationid: org.id
       }
     }
 
-    var res2 = await user.updateById(req2)
+    const res2 = await user.updateById(req2)
 
     expect(res2.username).to.equal('ted1talks3004')
     expect(res2.email).to.equal('ted14@email.com')
     expect(res.password).to.be.undefined
-    expect(res.hash).to.be.a('string')
 
   })
 
