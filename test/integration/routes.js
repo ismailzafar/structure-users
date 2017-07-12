@@ -1,3 +1,4 @@
+import r from 'structure-driver'
 import Migrations from 'structure-migrations'
 import MockHTTPServer from '../helpers/mock-http-server'
 import pluginsList from '../helpers/plugins'
@@ -331,6 +332,11 @@ describe('Routes', function() {
 
   it('should create a user', async function() {
 
+    const roles = {
+      organizations: {}
+    }
+    roles.organizations[orgId] = ['role1', 'role2']
+
     const res = await testApi.create(orgId, appId, {
       username: 'testuser1',
       email: 'testuser1@mail.com',
@@ -341,22 +347,40 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      roles: ['role1', 'role2']
+      organizationIds: [orgId],
+      roles
     })
+    const user = res.body.pkg
 
-    expect(res.body.pkg.username).to.equal('testuser1')
-    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
-    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
-    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
-    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
-    expect(res.body.pkg.firstName).to.equal('Pumpkin')
-    expect(res.body.pkg.lastName).to.equal('Joe')
-    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
     expect(res.body.status).to.equal(201)
+    expect(user.username).to.equal('testuser1')
+    expect(user.email).to.equal('testuser1@mail.com')
+    expect(user.bio).to.equal('Extreme pumpkin farmer')
+    expect(user.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(user.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(user.firstName).to.equal('Pumpkin')
+    expect(user.lastName).to.equal('Joe')
+
+    const links = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: orgId,
+        userId: user.id
+      })
+
+    expect(links.length).to.equal(1)
+    expect(links[0].organizationId).to.equal(orgId)
+    expect(links[0].userId).to.equal(user.id)
+    expect(links[0].roles).to.deep.equal(['role1', 'role2'])
 
   })
 
   it('should create a user (case)', async function() {
+
+    const roles = {
+      organizations: {}
+    }
+    roles.organizations[orgId] = ['role1', 'role2']
 
     const res = await testApi.create(orgId, appId, {
       username: 'TestUser1',
@@ -368,18 +392,31 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      roles: ['ROLE1', 'ROLE2']
+      organizationIds: [orgId],
+      roles
     })
+    const user = res.body.pkg
 
-    expect(res.body.pkg.username).to.equal('testuser1')
-    expect(res.body.pkg.email).to.equal('testuser1@mail.com')
-    expect(res.body.pkg.bio).to.equal('Extreme pumpkin farmer')
-    expect(res.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
-    expect(res.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
-    expect(res.body.pkg.firstName).to.equal('Pumpkin')
-    expect(res.body.pkg.lastName).to.equal('Joe')
-    expect(res.body.pkg.roles).to.deep.equal(['role1', 'role2'])
+    expect(user.username).to.equal('testuser1')
+    expect(user.email).to.equal('testuser1@mail.com')
+    expect(user.bio).to.equal('Extreme pumpkin farmer')
+    expect(user.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(user.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(user.firstName).to.equal('Pumpkin')
+    expect(user.lastName).to.equal('Joe')
     expect(res.body.status).to.equal(201)
+
+    const links = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: orgId,
+        userId: user.id
+      })
+
+    expect(links.length).to.equal(1)
+    expect(links[0].organizationId).to.equal(orgId)
+    expect(links[0].userId).to.equal(user.id)
+    expect(links[0].roles).to.deep.equal(['role1', 'role2'])
 
   })
 
@@ -687,6 +724,11 @@ describe('Routes', function() {
     })
     const userId = userRes.body.pkg.id
 
+    const roles = {
+      organizations: {}
+    }
+    roles.organizations[orgId] = ['role1', 'role2']
+
     const res1 = await testApi.update(orgId, appId, userId, {
       username: 'updateduser4',
       email: 'updateuser@email.com',
@@ -696,7 +738,8 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      roles: ['role1', 'role2']
+      organizationIds: [orgId],
+      roles
     })
 
     expect(res1.body.status).to.equal(200)
@@ -711,8 +754,19 @@ describe('Routes', function() {
     expect(res2.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
     expect(res2.body.pkg.firstName).to.equal('Pumpkin')
     expect(res2.body.pkg.lastName).to.equal('Joe')
-    expect(res2.body.pkg.roles).to.deep.equal(['role1', 'role2'])
     expect(res2.body.status).to.equal(200)
+
+    const links = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: orgId,
+        userId: userId
+      })
+
+    expect(links.length).to.equal(1)
+    expect(links[0].organizationId).to.equal(orgId)
+    expect(links[0].userId).to.equal(userId)
+    expect(links[0].roles).to.deep.equal(['role1', 'role2'])
 
   })
 
@@ -751,6 +805,11 @@ describe('Routes', function() {
     })
     const userId = userRes.body.pkg.id
 
+    const roles = {
+      organizations: {}
+    }
+    roles.organizations[orgId] = ['role1', 'role2']
+
     const res1 = await testApi.update(orgId, appId, userId, {
       username: 'UpdatedUser4',
       email: 'UpdateUser@email.com',
@@ -760,7 +819,8 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      roles: ['ROLE1', 'ROLE2']
+      organizationIds: [orgId],
+      roles
     })
 
     expect(res1.body.status).to.equal(200)
@@ -775,8 +835,19 @@ describe('Routes', function() {
     expect(res2.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
     expect(res2.body.pkg.firstName).to.equal('Pumpkin')
     expect(res2.body.pkg.lastName).to.equal('Joe')
-    expect(res2.body.pkg.roles).to.deep.equal(['role1', 'role2'])
     expect(res2.body.status).to.equal(200)
+
+    const links = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: orgId,
+        userId: userId
+      })
+
+    expect(links.length).to.equal(1)
+    expect(links[0].organizationId).to.equal(orgId)
+    expect(links[0].userId).to.equal(userId)
+    expect(links[0].roles).to.deep.equal(['role1', 'role2'])
 
   })
 

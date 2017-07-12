@@ -41,11 +41,29 @@ const schema = {
       "type": "string"
     },
     "roles": {
-      "type": "array",
-      "items": {
-        "lowercase": true,
-        "type": "string"
-      }
+      "type": "object",
+      "properties": {
+        "applications": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "lowercase": true,
+              "type": "string"
+            }
+          }
+        },
+        "organizations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "lowercase": true,
+              "type": "string"
+            }
+          }
+        },
+      },
     },
   }
 }

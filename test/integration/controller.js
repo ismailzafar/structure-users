@@ -1,3 +1,4 @@
+import r from 'structure-driver'
 import migrationItems from '../../src/migrations'
 import Migrations from 'structure-migrations'
 import {settings as organizationSettings} from 'structure-organizations'
@@ -51,18 +52,25 @@ describe('Controller', function() {
   })
 
   /** @test {UserController#create} */
-  it('should create an user', async function() {
+  it('should create a user', async function() {
 
     const org = await createOrg()
     const app = await createApp(org.id)
 
     const user = new UserController()
 
+    const roles = {
+      organizations: {}
+    }
+    roles.organizations[org.id] = ['admin']
+
     const res = await user.create({
       body: {
         username: 'ted1talks3000',
         email: 'ted10@email.com',
         password: 'foo88',
+        organizationIds: [org.id],
+        roles
       },
       headers: {
         applicationid: app.id,
@@ -74,6 +82,18 @@ describe('Controller', function() {
     expect(res.email).to.equal('ted10@email.com')
     expect(res.password).to.be.undefined
     expect(res.hash).to.not.be.undefined
+
+    const links = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: org.id,
+        userId: res.id
+      })
+
+    expect(links.length).to.equal(1)
+    expect(links[0].organizationId).to.equal(org.id)
+    expect(links[0].userId).to.equal(res.id)
+    expect(links[0].roles).to.deep.equal(['admin'])
 
   })
 
@@ -231,9 +251,16 @@ describe('Controller', function() {
 
     const res = await user.create(req)
 
+    const roles = {
+      organizations: {}
+    }
+    roles.organizations[organizationId] = ['admin']
+    roles.organizations[organizationId2] = ['member']
+
     const req1 = {
       body: {
-        organizationIds: [organizationId, organizationId2]
+        organizationIds: [organizationId, organizationId2],
+        roles
       },
       params: {
         id: res.id
@@ -246,24 +273,23 @@ describe('Controller', function() {
 
     const res1 = await user.updateById(req1)
 
-    const req2 = {
-      params: {
-        id: res.id
-      },
-      headers: {
-        applicationid: applicationId,
-        organizationid: organizationId
-      }
-    }
-
-    const res2 = await user.getById(req2)
-
     expect(res1.organizationIds).to.eql([organizationId, organizationId2])
-    expect(res2.organizationIds).to.eql([organizationId, organizationId2])
+
+    const res2 = await organizationModel.ofUser(res.id)
+
+    expect(res2.length).to.equal(2)
+    expect(res2[0].id).to.equal(organizationId)
+    expect(res2[1].id).to.equal(organizationId2)
+
+    const roles2 = {
+      organizations: {}
+    }
+    roles2.organizations[organizationId] = ['admin']
 
     const req3 = {
       body: {
-        organizationIds: [organizationId]
+        organizationIds: [organizationId],
+        roles: roles2
       },
       params: {
         id: res.id
@@ -276,20 +302,24 @@ describe('Controller', function() {
 
     const res3 = await user.updateById(req3)
 
-    const req4 = {
-      params: {
-        id: res.id
-      },
-      headers: {
-        applicationid: applicationId,
-        organizationid: organizationId
-      }
-    }
-
-    const res4 = await user.getById(req4)
-
     expect(res3.organizationIds).to.eql([organizationId])
-    expect(res4.organizationIds).to.eql([organizationId])
+
+    const res4 = await organizationModel.ofUser(res.id)
+
+    expect(res4.length).to.equal(1)
+    expect(res4[0].id).to.equal(organizationId)
+
+    const links = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: organizationId,
+        userId: res.id
+      })
+
+    expect(links.length).to.equal(1)
+    expect(links[0].organizationId).to.equal(organizationId)
+    expect(links[0].userId).to.equal(res.id)
+    expect(links[0].roles).to.deep.equal(['admin'])
 
   })
 
