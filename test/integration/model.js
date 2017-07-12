@@ -1,10 +1,8 @@
 import r from 'structure-driver'
-import migrationItems from '../../src/migrations'
+import pluginsList from '../helpers/plugins'
 import Migrations from 'structure-migrations'
-import {resources as organizationResources, settings as organizationSettings} from 'structure-organizations'
+import {OrganizationModel} from 'structure-organizations'
 import UserModel from '../../src/models/user'
-
-const OrganizationModel = organizationResources.models.Organization
 
 /** @test {UserModel} */
 describe('Model', function() {
@@ -13,9 +11,7 @@ describe('Model', function() {
 
     this.migration = new Migrations({
       db: 'test',
-      items: {
-        tables: migrationItems.tables.concat(organizationSettings.migrations.tables)
-      }
+      plugins: pluginsList
     })
 
     return this.migration.process()

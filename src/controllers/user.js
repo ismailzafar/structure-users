@@ -1,6 +1,7 @@
 import codes from '../lib/error-codes'
 import PasswordService from 'structure-password-service'
 import {OrganizationModel, UserService as OrgUserService} from 'structure-organizations'
+import {ApplicationModel, UserService as AppUserService} from 'structure-applications'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
 
@@ -109,11 +110,20 @@ export default class UsersController extends RootController {
 
     const user = await userModel.create(pkg)
 
-    if (pkg.organizationIds) {
+    if (pkg.organizationIds && roles) {
 
       for (const orgId of pkg.organizationIds) {
         const orgUserService = new OrgUserService(orgId, user.id, this.logger)
         await orgUserService.addUser(roles.organizations[orgId])
+      }
+
+    }
+
+    if (pkg.applicationIds && roles) {
+
+      for (const appId of pkg.applicationIds) {
+        const appUserService = new AppUserService(appId, user.id, this.logger)
+        await appUserService.addUser(roles.applications[appId])
       }
 
     }
@@ -307,10 +317,57 @@ export default class UsersController extends RootController {
       await this.updateOrganizations(req, pkg)
     }
 
+    if (pkg.applicationIds && pkg.roles) {
+      await this.updateApplications(req, pkg)
+    }
+
     delete pkg.roles
     delete pkg.password
 
     return userModel.updateById(userId, pkg)
+
+  }
+
+  async updateApplications(req, pkg) {
+    const userId = req.params.id
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+
+    const appliationModel = new ApplicationModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
+
+    const userApplications = await appliationModel.ofUser(userId)
+    const existingApplications = userApplications.map(({id}) => id)
+
+    const appsToRemove = existingApplications.filter((i) => {
+      return pkg.applicationIds.indexOf(i) < 0
+    })
+
+    const appsToAdd = pkg.applicationIds.filter((i) => {
+      return existingApplications.indexOf(i) < 0
+    })
+
+    const appsToUpdate = pkg.applicationIds.filter((i) => {
+      return appsToAdd.indexOf(i) < 0
+    })
+
+    for (const appId of appsToRemove) {
+      const appUserService = new AppUserService(appId, userId, this.logger)
+      await appUserService.removeUser()
+    }
+
+    for (const appId of appsToAdd) {
+      const appUserService = new AppUserService(appId, userId, this.logger)
+      await appUserService.addUser(pkg.roles.applications[appId])
+    }
+
+    for (const appId of appsToUpdate) {
+      const appUserService = new AppUserService(appId, userId, this.logger)
+      await appUserService.updateUser(pkg.roles.applications[appId])
+    }
 
   }
 

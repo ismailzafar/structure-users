@@ -73,6 +73,14 @@ export default class UserModel extends RootModel {
               localKey: 'userId'
             },
             joinTable: 'link_organizations_users'
+          },
+          {
+            node: 'applications',
+            link: {
+              foreignKey: 'applicationId',
+              localKey: 'userId'
+            },
+            joinTable: 'link_applications_users'
           }
         ]
       }
