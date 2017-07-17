@@ -73,6 +73,7 @@ describe('Controller', function() {
     expect(res.username).to.equal('ted1talks3000')
     expect(res.email).to.equal('ted10@email.com')
     expect(res.password).to.be.undefined
+    expect(res.hash).to.not.be.undefined
 
   })
 
@@ -112,6 +113,7 @@ describe('Controller', function() {
     expect(res2.username).to.equal('ted1talks3001')
     expect(res2.email).to.equal('ted11@email.com')
     expect(res2.password).to.be.undefined
+    expect(res.hash).to.not.be.undefined
 
   })
 
@@ -185,6 +187,7 @@ describe('Controller', function() {
     expect(res2.username).to.equal('ted1talks3004')
     expect(res2.email).to.equal('ted14@email.com')
     expect(res.password).to.be.undefined
+    expect(res.hash).to.not.be.undefined
 
   })
 

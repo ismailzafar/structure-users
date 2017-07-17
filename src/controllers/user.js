@@ -1,4 +1,5 @@
 import codes from '../lib/error-codes'
+import PasswordService from 'structure-password-service'
 import {OrganizationModel, UserService} from 'structure-organizations'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
