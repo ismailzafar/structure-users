@@ -1,6 +1,6 @@
-import migrationItems from '../../src/migrations'
+import r from 'structure-driver'
+import pluginsList from '../helpers/plugins'
 import Migrations from 'structure-migrations'
-import {settings as organizationSettings} from 'structure-organizations'
 import UserController from '../../src/controllers/user'
 import {OrganizationModel} from 'structure-organizations'
 import {ApplicationModel} from 'structure-applications'
@@ -37,9 +37,7 @@ describe('Controller', function() {
 
     this.migration = new Migrations({
       db: 'test',
-      items: {
-        tables: migrationItems.tables.concat(organizationSettings.migrations.tables)
-      }
+      plugins: pluginsList
     })
 
     return this.migration.process()
@@ -51,18 +49,28 @@ describe('Controller', function() {
   })
 
   /** @test {UserController#create} */
-  it('should create an user', async function() {
+  it('should create a user', async function() {
 
     const org = await createOrg()
     const app = await createApp(org.id)
 
     const user = new UserController()
 
+    const roles = {
+      organizations: {},
+      applications: {}
+    }
+    roles.organizations[org.id] = ['admin']
+    roles.applications[app.id] = ['editor']
+
     const res = await user.create({
       body: {
         username: 'ted1talks3000',
         email: 'ted10@email.com',
         password: 'foo88',
+        organizationIds: [org.id],
+        applicationIds: [app.id],
+        roles
       },
       headers: {
         applicationid: app.id,
@@ -74,6 +82,30 @@ describe('Controller', function() {
     expect(res.email).to.equal('ted10@email.com')
     expect(res.password).to.be.undefined
     expect(res.hash).to.not.be.undefined
+
+    const orgLinks = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: org.id,
+        userId: res.id
+      })
+
+    expect(orgLinks.length).to.equal(1)
+    expect(orgLinks[0].organizationId).to.equal(org.id)
+    expect(orgLinks[0].userId).to.equal(res.id)
+    expect(orgLinks[0].roles).to.deep.equal(['admin'])
+
+    const appLinks = await r
+      .table('link_applications_users')
+      .filter({
+        applicationId: app.id,
+        userId: res.id
+      })
+
+    expect(appLinks.length).to.equal(1)
+    expect(appLinks[0].applicationId).to.equal(app.id)
+    expect(appLinks[0].userId).to.equal(res.id)
+    expect(appLinks[0].roles).to.deep.equal(['editor'])
 
   })
 
@@ -214,6 +246,11 @@ describe('Controller', function() {
       title: 'My App'
     })
     const applicationId = application.id
+    const application2 = await applicationModel.create({
+      desc: '',
+      title: 'My App2'
+    })
+    const applicationId2 = application2.id
 
     const user = new UserController()
 
@@ -231,9 +268,20 @@ describe('Controller', function() {
 
     const res = await user.create(req)
 
+    const roles = {
+      organizations: {},
+      applications: {}
+    }
+    roles.organizations[organizationId] = ['admin']
+    roles.organizations[organizationId2] = ['member']
+    roles.applications[applicationId] = ['editor']
+    roles.applications[applicationId2] = ['writer']
+
     const req1 = {
       body: {
-        organizationIds: [organizationId, organizationId2]
+        organizationIds: [organizationId, organizationId2],
+        applicationIds: [applicationId, applicationId2],
+        roles
       },
       params: {
         id: res.id
@@ -246,37 +294,34 @@ describe('Controller', function() {
 
     const res1 = await user.updateById(req1)
 
-    const req2 = {
-      params: {
-        id: res.id
-      },
-      headers: {
-        applicationid: applicationId,
-        organizationid: organizationId
-      }
-    }
-
-    const res2 = await user.getById(req2)
-
     expect(res1.organizationIds).to.eql([organizationId, organizationId2])
-    expect(res2.organizationIds).to.eql([organizationId, organizationId2])
+    expect(res1.applicationIds).to.eql([applicationId, applicationId2])
 
-    const req3 = {
-      body: {
-        organizationIds: [organizationId]
-      },
-      params: {
-        id: res.id
-      },
-      headers: {
-        applicationid: applicationId,
-        organizationid: organizationId
-      }
+    const res2 = await organizationModel.ofUser(res.id)
+
+    expect(res2.length).to.equal(2)
+    expect(res2[0].id).to.equal(organizationId)
+    expect(res2[1].id).to.equal(organizationId2)
+
+    const res3 = await applicationModel.ofUser(res.id)
+
+    expect(res3.length).to.equal(2)
+    expect(res3[0].id).to.equal(applicationId)
+    expect(res3[1].id).to.equal(applicationId2)
+
+    const roles2 = {
+      organizations: {},
+      applications: {}
     }
-
-    const res3 = await user.updateById(req3)
+    roles2.organizations[organizationId] = ['admin']
+    roles2.applications[applicationId] = ['editor']
 
     const req4 = {
+      body: {
+        organizationIds: [organizationId],
+        applicationIds: [applicationId],
+        roles: roles2
+      },
       params: {
         id: res.id
       },
@@ -286,10 +331,44 @@ describe('Controller', function() {
       }
     }
 
-    const res4 = await user.getById(req4)
+    const res4 = await user.updateById(req4)
 
-    expect(res3.organizationIds).to.eql([organizationId])
     expect(res4.organizationIds).to.eql([organizationId])
+    expect(res4.applicationIds).to.eql([applicationId])
+
+    const res5 = await organizationModel.ofUser(res.id)
+
+    expect(res5.length).to.equal(1)
+    expect(res5[0].id).to.equal(organizationId)
+
+    const res6 = await applicationModel.ofUser(res.id)
+
+    expect(res6.length).to.equal(1)
+    expect(res6[0].id).to.equal(applicationId)
+
+    const orgLinks = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: organizationId,
+        userId: res.id
+      })
+
+    expect(orgLinks.length).to.equal(1)
+    expect(orgLinks[0].organizationId).to.equal(organizationId)
+    expect(orgLinks[0].userId).to.equal(res.id)
+    expect(orgLinks[0].roles).to.deep.equal(['admin'])
+
+    const appLinks = await r
+      .table('link_applications_users')
+      .filter({
+        applicationId: applicationId,
+        userId: res.id
+      })
+
+    expect(appLinks.length).to.equal(1)
+    expect(appLinks[0].applicationId).to.equal(applicationId)
+    expect(appLinks[0].userId).to.equal(res.id)
+    expect(appLinks[0].roles).to.deep.equal(['editor'])
 
   })
 

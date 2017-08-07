@@ -1,6 +1,7 @@
 import codes from '../lib/error-codes'
 import PasswordService from 'structure-password-service'
-import {OrganizationModel, UserService} from 'structure-organizations'
+import {OrganizationModel, UserService as OrgUserService} from 'structure-organizations'
+import {ApplicationModel, UserService as AppUserService} from 'structure-applications'
 import RootController from 'structure-root-controller'
 import UserModel from '../models/user'
 
@@ -101,11 +102,33 @@ export default class UsersController extends RootController {
 
     if(pkg.password) {
       pkg.hash = await new PasswordService().issue(pkg.password)
-
       delete pkg.password
     }
 
-    return userModel.create(pkg)
+    const roles = pkg.roles
+    delete pkg.roles
+
+    const user = await userModel.create(pkg)
+
+    if (pkg.organizationIds && roles) {
+
+      for (const orgId of pkg.organizationIds) {
+        const orgUserService = new OrgUserService(orgId, user.id, this.logger)
+        await orgUserService.addUser(roles.organizations[orgId])
+      }
+
+    }
+
+    if (pkg.applicationIds && roles) {
+
+      for (const appId of pkg.applicationIds) {
+        const appUserService = new AppUserService(appId, user.id, this.logger)
+        await appUserService.addUser(roles.applications[appId])
+      }
+
+    }
+
+    return user
   }
 
   /**
@@ -289,6 +312,70 @@ export default class UsersController extends RootController {
       logger: this.logger,
       organizationId
     })
+
+    if (pkg.organizationIds && pkg.roles) {
+      await this.updateOrganizations(req, pkg)
+    }
+
+    if (pkg.applicationIds && pkg.roles) {
+      await this.updateApplications(req, pkg)
+    }
+
+    delete pkg.roles
+    delete pkg.password
+
+    return userModel.updateById(userId, pkg)
+
+  }
+
+  async updateApplications(req, pkg) {
+    const userId = req.params.id
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+
+    const appliationModel = new ApplicationModel({
+      applicationId,
+      logger: this.logger,
+      organizationId
+    })
+
+    const userApplications = await appliationModel.ofUser(userId)
+    const existingApplications = userApplications.map(({id}) => id)
+
+    const appsToRemove = existingApplications.filter((i) => {
+      return pkg.applicationIds.indexOf(i) < 0
+    })
+
+    const appsToAdd = pkg.applicationIds.filter((i) => {
+      return existingApplications.indexOf(i) < 0
+    })
+
+    const appsToUpdate = pkg.applicationIds.filter((i) => {
+      return appsToAdd.indexOf(i) < 0
+    })
+
+    for (const appId of appsToRemove) {
+      const appUserService = new AppUserService(appId, userId, this.logger)
+      await appUserService.removeUser()
+    }
+
+    for (const appId of appsToAdd) {
+      const appUserService = new AppUserService(appId, userId, this.logger)
+      await appUserService.addUser(pkg.roles.applications[appId])
+    }
+
+    for (const appId of appsToUpdate) {
+      const appUserService = new AppUserService(appId, userId, this.logger)
+      await appUserService.updateUser(pkg.roles.applications[appId])
+    }
+
+  }
+
+  async updateOrganizations(req, pkg) {
+    const userId = req.params.id
+    const applicationId = req.headers.applicationid
+    const organizationId = req.headers.organizationid
+
     const organizationModel = new OrganizationModel({
       applicationId,
       logger: this.logger,
@@ -296,37 +383,39 @@ export default class UsersController extends RootController {
     })
 
     if(pkg.password) {
-      const token = Object.assign({}, pkg.token)
-      delete pkg.token
-
       pkg.hash = await new PasswordService().issue(pkg.password)
       delete pkg.password
     }
 
-    if (pkg.organizationIds) {
-      const userOrganizations = await organizationModel.ofUser(userId)
-      const existingOrganizations = userOrganizations.map(({id}) => id)
+    const userOrganizations = await organizationModel.ofUser(userId)
+    const existingOrganizations = userOrganizations.map(({id}) => id)
 
-      const orgsToRemove = existingOrganizations.filter((i) => {
-        return pkg.organizationIds.indexOf(i) < 0
-      })
+    const orgsToRemove = existingOrganizations.filter((i) => {
+      return pkg.organizationIds.indexOf(i) < 0
+    })
 
-      const orgsToAdd = pkg.organizationIds.filter((i) => {
-        return existingOrganizations.indexOf(i) < 0
-      })
+    const orgsToAdd = pkg.organizationIds.filter((i) => {
+      return existingOrganizations.indexOf(i) < 0
+    })
 
-      for (const orgId of orgsToRemove) {
-        const userService = new UserService(orgId, userId, this.logger)
-        await userService.removeUser()
-      }
+    const orgsToUpdate = pkg.organizationIds.filter((i) => {
+      return orgsToAdd.indexOf(i) < 0
+    })
 
-      for (const orgId of orgsToAdd) {
-        const userService = new UserService(orgId, userId, this.logger)
-        await userService.addUser()
-      }
+    for (const orgId of orgsToRemove) {
+      const orgUserService = new OrgUserService(orgId, userId, this.logger)
+      await orgUserService.removeUser()
     }
 
-    return userModel.updateById(userId, pkg)
+    for (const orgId of orgsToAdd) {
+      const orgUserService = new OrgUserService(orgId, userId, this.logger)
+      await orgUserService.addUser(pkg.roles.organizations[orgId])
+    }
+
+    for (const orgId of orgsToUpdate) {
+      const orgUserService = new OrgUserService(orgId, userId, this.logger)
+      await orgUserService.updateUser(pkg.roles.organizations[orgId])
+    }
 
   }
 

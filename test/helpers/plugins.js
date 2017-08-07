@@ -5,5 +5,5 @@ export default [
   'structure-applications',
   Plugin,
   'structure-groups',
-  //'structure-digital-assets',
+  'structure-digital-assets',
 ]
