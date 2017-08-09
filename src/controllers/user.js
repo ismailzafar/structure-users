@@ -106,7 +106,6 @@ export default class UsersController extends RootController {
     }
 
     const roles = pkg.roles
-    delete pkg.roles
 
     const user = await userModel.create(pkg)
 
@@ -321,7 +320,6 @@ export default class UsersController extends RootController {
       await this.updateApplications(req, pkg)
     }
 
-    delete pkg.roles
     delete pkg.password
 
     return userModel.updateById(userId, pkg)

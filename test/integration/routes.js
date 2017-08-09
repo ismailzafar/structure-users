@@ -363,6 +363,8 @@ describe('Routes', function() {
     expect(user.twitterUrl).to.equal('www.twitter.com/besturl')
     expect(user.firstName).to.equal('Pumpkin')
     expect(user.lastName).to.equal('Joe')
+    expect(user.roles.organizations[orgId]).to.deep.equal(['role1', 'role2'])
+    expect(user.roles.applications[appId]).to.deep.equal(['editor'])
 
     const orgLinks = await r
       .table('link_organizations_users')
@@ -415,6 +417,7 @@ describe('Routes', function() {
     })
     const user = res.body.pkg
 
+    expect(res.body.status).to.equal(201)
     expect(user.username).to.equal('testuser1')
     expect(user.email).to.equal('testuser1@mail.com')
     expect(user.bio).to.equal('Extreme pumpkin farmer')
@@ -422,7 +425,8 @@ describe('Routes', function() {
     expect(user.twitterUrl).to.equal('www.twitter.com/besturl')
     expect(user.firstName).to.equal('Pumpkin')
     expect(user.lastName).to.equal('Joe')
-    expect(res.body.status).to.equal(201)
+    expect(user.roles.organizations[orgId]).to.deep.equal(['role1', 'role2'])
+    expect(user.roles.applications[appId]).to.deep.equal(['editor'])
 
     const orgLinks = await r
       .table('link_organizations_users')
@@ -779,6 +783,7 @@ describe('Routes', function() {
 
     const res2 = await testApi.get(orgId, appId, userId)
 
+    expect(res2.body.status).to.equal(200)
     expect(res2.body.pkg.username).to.equal('updateduser4')
     expect(res2.body.pkg.email).to.equal('updateuser@email.com')
     expect(res2.body.pkg.timezone).to.equal('America/Denver')
@@ -787,7 +792,81 @@ describe('Routes', function() {
     expect(res2.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
     expect(res2.body.pkg.firstName).to.equal('Pumpkin')
     expect(res2.body.pkg.lastName).to.equal('Joe')
+    expect(res2.body.pkg.roles.organizations[orgId]).to.deep.equal(['role1', 'role2'])
+    expect(res2.body.pkg.roles.applications[appId]).to.deep.equal(['editor'])
+
+    const orgLinks = await r
+      .table('link_organizations_users')
+      .filter({
+        organizationId: orgId,
+        userId: userId
+      })
+
+    expect(orgLinks.length).to.equal(1)
+    expect(orgLinks[0].organizationId).to.equal(orgId)
+    expect(orgLinks[0].userId).to.equal(userId)
+    expect(orgLinks[0].roles).to.deep.equal(['role1', 'role2'])
+
+    const appLinks = await r
+      .table('link_applications_users')
+      .filter({
+        applicationId: appId,
+        userId: userId
+      })
+
+    expect(appLinks.length).to.equal(1)
+    expect(appLinks[0].applicationId).to.equal(appId)
+    expect(appLinks[0].userId).to.equal(userId)
+    expect(appLinks[0].roles).to.deep.equal(['editor'])
+
+  })
+
+  it('should update a user by ID (case)', async function() {
+
+    const userRes = await testApi.create(orgId, appId, {
+      username: 'testuser4',
+      email: 'testuser@mail.com',
+      password: 'foo88',
+      timezone: 'America/New_York',
+    })
+    const userId = userRes.body.pkg.id
+
+    const roles = {
+      organizations: {},
+      applications: {}
+    }
+    roles.organizations[orgId] = ['role1', 'role2']
+    roles.applications[appId] = ['editor']
+
+    const res1 = await testApi.update(orgId, appId, userId, {
+      username: 'UpdatedUser4',
+      email: 'UpdateUser@email.com',
+      timezone: 'America/Denver',
+      bio: 'Extreme pumpkin farmer',
+      facebookUrl: 'www.facebook.com/besturl',
+      twitterUrl: 'www.twitter.com/besturl',
+      firstName: 'Pumpkin',
+      lastName: 'Joe',
+      organizationIds: [orgId],
+      applicationIds: [appId],
+      roles
+    })
+
+    expect(res1.body.status).to.equal(200)
+
+    const res2 = await testApi.get(orgId, appId, userId)
+
     expect(res2.body.status).to.equal(200)
+    expect(res2.body.pkg.username).to.equal('updateduser4')
+    expect(res2.body.pkg.email).to.equal('updateuser@email.com')
+    expect(res2.body.pkg.timezone).to.equal('America/Denver')
+    expect(res2.body.pkg.bio).to.equal('Extreme pumpkin farmer')
+    expect(res2.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
+    expect(res2.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
+    expect(res2.body.pkg.firstName).to.equal('Pumpkin')
+    expect(res2.body.pkg.lastName).to.equal('Joe')
+    expect(res2.body.pkg.roles.organizations[orgId]).to.deep.equal(['role1', 'role2'])
+    expect(res2.body.pkg.roles.applications[appId]).to.deep.equal(['editor'])
 
     const orgLinks = await r
       .table('link_organizations_users')
@@ -837,77 +916,6 @@ describe('Routes', function() {
     expect(res2.body.pkg.username).to.equal('testuser4')
     expect(res2.body.pkg.email).to.equal('testuser@mail.com')
     expect(res2.body.status).to.equal(200)
-
-  })
-
-  it('should update a user by ID (case)', async function() {
-
-    const userRes = await testApi.create(orgId, appId, {
-      username: 'testuser4',
-      email: 'testuser@mail.com',
-      password: 'foo88',
-      timezone: 'America/New_York',
-    })
-    const userId = userRes.body.pkg.id
-
-    const roles = {
-      organizations: {},
-      applications: {}
-    }
-    roles.organizations[orgId] = ['role1', 'role2']
-    roles.applications[appId] = ['editor']
-
-    const res1 = await testApi.update(orgId, appId, userId, {
-      username: 'UpdatedUser4',
-      email: 'UpdateUser@email.com',
-      timezone: 'America/Denver',
-      bio: 'Extreme pumpkin farmer',
-      facebookUrl: 'www.facebook.com/besturl',
-      twitterUrl: 'www.twitter.com/besturl',
-      firstName: 'Pumpkin',
-      lastName: 'Joe',
-      organizationIds: [orgId],
-      applicationIds: [appId],
-      roles
-    })
-
-    expect(res1.body.status).to.equal(200)
-
-    const res2 = await testApi.get(orgId, appId, userId)
-
-    expect(res2.body.pkg.username).to.equal('updateduser4')
-    expect(res2.body.pkg.email).to.equal('updateuser@email.com')
-    expect(res2.body.pkg.timezone).to.equal('America/Denver')
-    expect(res2.body.pkg.bio).to.equal('Extreme pumpkin farmer')
-    expect(res2.body.pkg.facebookUrl).to.equal('www.facebook.com/besturl')
-    expect(res2.body.pkg.twitterUrl).to.equal('www.twitter.com/besturl')
-    expect(res2.body.pkg.firstName).to.equal('Pumpkin')
-    expect(res2.body.pkg.lastName).to.equal('Joe')
-    expect(res2.body.status).to.equal(200)
-
-    const orgLinks = await r
-      .table('link_organizations_users')
-      .filter({
-        organizationId: orgId,
-        userId: userId
-      })
-
-    expect(orgLinks.length).to.equal(1)
-    expect(orgLinks[0].organizationId).to.equal(orgId)
-    expect(orgLinks[0].userId).to.equal(userId)
-    expect(orgLinks[0].roles).to.deep.equal(['role1', 'role2'])
-
-    const appLinks = await r
-      .table('link_applications_users')
-      .filter({
-        applicationId: appId,
-        userId: userId
-      })
-
-    expect(appLinks.length).to.equal(1)
-    expect(appLinks[0].applicationId).to.equal(appId)
-    expect(appLinks[0].userId).to.equal(userId)
-    expect(appLinks[0].roles).to.deep.equal(['editor'])
 
   })
 

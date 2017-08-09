@@ -334,7 +334,9 @@ describe('Controller', function() {
     const res4 = await user.updateById(req4)
 
     expect(res4.organizationIds).to.eql([organizationId])
+    expect(res4.roles.organizations[organizationId]).to.deep.equal(['admin'])
     expect(res4.applicationIds).to.eql([applicationId])
+    expect(res4.roles.applications[applicationId]).to.deep.equal(['editor'])
 
     const res5 = await organizationModel.ofUser(res.id)
 
