@@ -365,6 +365,7 @@ describe('Routes', function() {
     expect(user.lastName).to.equal('Joe')
     expect(user.roles.organizations[orgId]).to.deep.equal(['role1', 'role2'])
     expect(user.roles.applications[appId]).to.deep.equal(['editor'])
+    expect(user.password).to.be.undefined
 
     const orgLinks = await r
       .table('link_organizations_users')
@@ -794,6 +795,7 @@ describe('Routes', function() {
     expect(res2.body.pkg.lastName).to.equal('Joe')
     expect(res2.body.pkg.roles.organizations[orgId]).to.deep.equal(['role1', 'role2'])
     expect(res2.body.pkg.roles.applications[appId]).to.deep.equal(['editor'])
+    expect(res2.body.pkg.password).to.be.undefined
 
     const orgLinks = await r
       .table('link_organizations_users')
