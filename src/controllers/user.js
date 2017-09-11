@@ -105,24 +105,29 @@ export default class UsersController extends RootController {
       delete pkg.password
     }
 
-    const roles = pkg.roles
-
     const user = await userModel.create(pkg)
 
-    if (pkg.organizationIds && roles) {
+    if (pkg.roles && pkg.roles.organizations) {
+      const organizationIds = Object.keys(pkg.roles.organizations).filter(
+        orgId => Boolean(pkg.roles.organizations[orgId].length)
+      )
 
-      for (const orgId of pkg.organizationIds) {
+      for (const orgId of organizationIds) {
         const orgUserService = new OrgUserService(orgId, user.id, this.logger)
-        await orgUserService.addUser(roles.organizations[orgId])
+        await orgUserService.addUser(pkg.roles.organizations[orgId])
       }
 
     }
 
-    if (pkg.applicationIds && roles) {
+    if (pkg.roles && pkg.roles.applications) {
 
-      for (const appId of pkg.applicationIds) {
+      const applicationIds = Object.keys(pkg.roles.applications).filter(
+        appId => Boolean(pkg.roles.applications[appId].length)
+      )
+
+      for (const appId of applicationIds) {
         const appUserService = new AppUserService(appId, user.id, this.logger)
-        await appUserService.addUser(roles.applications[appId])
+        await appUserService.addUser(pkg.roles.applications[appId])
       }
 
     }
@@ -250,14 +255,7 @@ export default class UsersController extends RootController {
         ])
 
         const user = result[0]
-        user.organizationIds = []
         user.organizations = result[1] || []
-
-        for(let i = 0, l = user.organizations.length; i < l; i++) {
-          const org = user.organizations[i]
-
-          user.organizationIds.push(org.id)
-        }
 
         resolve(user)
 
@@ -312,11 +310,11 @@ export default class UsersController extends RootController {
       organizationId
     })
 
-    if (pkg.organizationIds && pkg.roles) {
+    if (pkg.roles && pkg.roles.organizations) {
       await this.updateOrganizations(req, pkg)
     }
 
-    if (pkg.applicationIds && pkg.roles) {
+    if (pkg.roles && pkg.roles.applications) {
       await this.updateApplications(req, pkg)
     }
 
@@ -340,21 +338,26 @@ export default class UsersController extends RootController {
     const userApplications = await appliationModel.ofUser(userId)
     const existingApplications = userApplications.map(({id}) => id)
 
+    const applicationIds = Object.keys(pkg.roles.applications).filter(
+      appId => Boolean(pkg.roles.applications[appId].length)
+    )
+
     const appsToRemove = existingApplications.filter((i) => {
-      return pkg.applicationIds.indexOf(i) < 0
+      return applicationIds.indexOf(i) < 0
     })
 
-    const appsToAdd = pkg.applicationIds.filter((i) => {
+    const appsToAdd = applicationIds.filter((i) => {
       return existingApplications.indexOf(i) < 0
     })
 
-    const appsToUpdate = pkg.applicationIds.filter((i) => {
+    const appsToUpdate = applicationIds.filter((i) => {
       return appsToAdd.indexOf(i) < 0
     })
 
     for (const appId of appsToRemove) {
       const appUserService = new AppUserService(appId, userId, this.logger)
       await appUserService.removeUser()
+      pkg.roles.applications[appId] = []
     }
 
     for (const appId of appsToAdd) {
@@ -388,21 +391,26 @@ export default class UsersController extends RootController {
     const userOrganizations = await organizationModel.ofUser(userId)
     const existingOrganizations = userOrganizations.map(({id}) => id)
 
+    const organizationIds = Object.keys(pkg.roles.organizations).filter(
+      orgId => Boolean(pkg.roles.organizations[orgId].length)
+    )
+
     const orgsToRemove = existingOrganizations.filter((i) => {
-      return pkg.organizationIds.indexOf(i) < 0
+      return organizationIds.indexOf(i) < 0
     })
 
-    const orgsToAdd = pkg.organizationIds.filter((i) => {
+    const orgsToAdd = organizationIds.filter((i) => {
       return existingOrganizations.indexOf(i) < 0
     })
 
-    const orgsToUpdate = pkg.organizationIds.filter((i) => {
+    const orgsToUpdate = organizationIds.filter((i) => {
       return orgsToAdd.indexOf(i) < 0
     })
 
     for (const orgId of orgsToRemove) {
       const orgUserService = new OrgUserService(orgId, userId, this.logger)
       await orgUserService.removeUser()
+      pkg.roles.organizations[orgId] = []
     }
 
     for (const orgId of orgsToAdd) {

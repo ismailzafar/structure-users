@@ -1,6 +1,6 @@
 {
   "name": "structure-users",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {

@@ -350,8 +350,6 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      organizationIds: [orgId],
-      applicationIds: [appId],
       roles
     })
     const user = res.body.pkg
@@ -413,8 +411,6 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      organizationIds: [orgId],
-      applicationIds: [appId],
       roles
     })
     const user = res.body.pkg
@@ -780,8 +776,6 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      organizationIds: [orgId],
-      applicationIds: [appId],
       roles
     })
 
@@ -857,8 +851,6 @@ describe('Routes', function() {
       twitterUrl: 'www.twitter.com/besturl',
       firstName: 'Pumpkin',
       lastName: 'Joe',
-      organizationIds: [orgId],
-      applicationIds: [appId],
       roles
     })
 
@@ -929,7 +921,7 @@ describe('Routes', function() {
 
   })
 
-  it('should update a users organizations', async function() {
+  it('should update a users roles', async function() {
 
     const userRes = await testApi.create(orgId, appId, {
       username: 'testuser4',
@@ -939,15 +931,36 @@ describe('Routes', function() {
     })
     const userId = userRes.body.pkg.id
 
-    const res = await testApi.update(orgId, appId, userId, {
-      organizationIds: [orgId]
-    })
-    expect(res.body.pkg.organizationIds).to.eql([orgId])
+    const roles = {
+      organizations: {},
+      applications: {}
+    }
+    roles.organizations[orgId] = ['admin']
+    roles.applications[appId] = ['editor']
 
-    const res2 = await testApi.update(orgId, appId, userId, {
-      organizationIds: []
+    const res = await testApi.update(orgId, appId, userId, {
+      roles
     })
-    expect(res2.body.pkg.organizationIds).to.eql([])
+    expect(res.body.pkg.roles.organizations[orgId]).to.deep.equal(['admin'])
+    expect(res.body.pkg.roles.applications[appId]).to.deep.equal(['editor'])
+
+    const res2 = await orgTestApi.getOrganizationsOfUser(userId)
+    expect(res2.body.pkg.organizations.length).to.equal(1)
+    expect(res2.body.pkg.organizations[0].id).to.equal(orgId)
+
+    const roles2 = {
+      organizations: {},
+      applications: {}
+    }
+
+    const res3 = await testApi.update(orgId, appId, userId, {
+      roles: roles2
+    })
+    expect(res3.body.pkg.roles.organizations[orgId]).to.deep.equal([])
+    expect(res3.body.pkg.roles.applications[appId]).to.deep.equal([])
+
+    const res4 = await orgTestApi.getOrganizationsOfUser(userId)
+    expect(res4.body.pkg.organizations.length).to.equal(0)
 
   })
 
