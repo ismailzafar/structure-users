@@ -6,6 +6,8 @@ import routes from './routes'
 
 export default function pluginInterface(options = {}) {
 
+  require('./hooks/invalidate-cache')
+
   return routes(options)
 
 }
