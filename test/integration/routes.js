@@ -1,4 +1,5 @@
 import r from 'structure-driver'
+import {Cache} from 'structure-cache-middleware'
 import Migrations from 'structure-migrations'
 import MockHTTPServer from '../helpers/mock-http-server'
 import pluginsList from '../helpers/plugins'
@@ -751,6 +752,10 @@ describe('Routes', function() {
 
   it('should update a user by ID', async function() {
 
+    this.sandbox = sinon.sandbox.create()
+    this.invalidateSpy = this.sandbox.spy()
+    this.sandbox.stub(Cache.prototype, 'invalidateAll', this.invalidateSpy)
+
     const userRes = await testApi.create(orgId, appId, {
       username: 'testuser4',
       email: 'testuser@mail.com',
@@ -820,6 +825,9 @@ describe('Routes', function() {
     expect(appLinks[0].applicationId).to.equal(appId)
     expect(appLinks[0].userId).to.equal(userId)
     expect(appLinks[0].roles).to.deep.equal(['editor'])
+
+    expect(this.invalidateSpy.calledOnce).to.be.true
+    expect(this.invalidateSpy.calledWith()).to.be.true
 
   })
 

@@ -1,6 +1,6 @@
 {
   "name": "structure-users",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Users",
   "main": "dist/index.js",
   "dependencies": {
@@ -8,8 +8,9 @@
     "babel-runtime": "^6.23.0",
     "express": "^4.15.0",
     "structure-applications": "^0.2.0",
+    "structure-cache-middleware": "^0.4.0",
     "structure-digital-assets": "^0.5.0",
-    "structure-dispatcher": "^0.1.13",
+    "structure-dispatcher": "^0.2.0",
     "structure-driver": "^0.1.1",
     "structure-middleware": "^0.1.0",
     "structure-organizations": "^0.2.0",
