@@ -68,8 +68,6 @@ describe('Controller', function() {
         username: 'ted1talks3000',
         email: 'ted10@email.com',
         password: 'foo88',
-        organizationIds: [org.id],
-        applicationIds: [app.id],
         roles
       },
       headers: {
@@ -82,6 +80,8 @@ describe('Controller', function() {
     expect(res.email).to.equal('ted10@email.com')
     expect(res.password).to.be.undefined
     expect(res.hash).to.not.be.undefined
+    expect(res.roles.organizations[org.id]).to.deep.equal(['admin'])
+    expect(res.roles.applications[app.id]).to.deep.equal(['editor'])
 
     const orgLinks = await r
       .table('link_organizations_users')
@@ -279,8 +279,6 @@ describe('Controller', function() {
 
     const req1 = {
       body: {
-        organizationIds: [organizationId, organizationId2],
-        applicationIds: [applicationId, applicationId2],
         roles
       },
       params: {
@@ -294,8 +292,10 @@ describe('Controller', function() {
 
     const res1 = await user.updateById(req1)
 
-    expect(res1.organizationIds).to.eql([organizationId, organizationId2])
-    expect(res1.applicationIds).to.eql([applicationId, applicationId2])
+    expect(res1.roles.organizations[organizationId]).to.deep.equal(['admin'])
+    expect(res1.roles.organizations[organizationId2]).to.deep.equal(['member'])
+    expect(res1.roles.applications[applicationId]).to.deep.equal(['editor'])
+    expect(res1.roles.applications[applicationId2]).to.deep.equal(['writer'])
 
     const res2 = await organizationModel.ofUser(res.id)
 
@@ -318,8 +318,6 @@ describe('Controller', function() {
 
     const req4 = {
       body: {
-        organizationIds: [organizationId],
-        applicationIds: [applicationId],
         roles: roles2
       },
       params: {
@@ -333,10 +331,10 @@ describe('Controller', function() {
 
     const res4 = await user.updateById(req4)
 
-    expect(res4.organizationIds).to.eql([organizationId])
     expect(res4.roles.organizations[organizationId]).to.deep.equal(['admin'])
-    expect(res4.applicationIds).to.eql([applicationId])
+    expect(res4.roles.organizations[organizationId2]).to.deep.equal([])
     expect(res4.roles.applications[applicationId]).to.deep.equal(['editor'])
+    expect(res4.roles.applications[applicationId2]).to.deep.equal([])
 
     const res5 = await organizationModel.ofUser(res.id)
 
